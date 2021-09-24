@@ -95,15 +95,6 @@ function tulostaRastit(data) {
 console.dir(data); 
 console.log(data); //alkuperäisessä tiedostossa ollut datan tulostus konsolille
 
-const joukkue = {   //joukkueen luonti
-    nimi: 'Mallijoukkue',
-    jasenet: ['Lammi Tohtonen', 'Matti Meikäläinen'],
-    leimaustapa: [0, 2],
-    rastit: [],
-    sarja: undefined,
-    id: 99999,
-};
-
 //----------------------------------TASO 3-------------------------------
 
 /*poistaa datasta joukkueen annetun nimen perusteella*/
@@ -116,19 +107,72 @@ function poistaJoukkue(data, nimi) { //haluttu data ja joukkueen nimi, string
 }
 
 /**
- * Vaihtaa pyydetyn rastileimauksen sijalle uuden rastin
+ * Vaihtaa pyydetyn rastileimauksen sijalle uuden rastin.
+ * Tarkistaa, että annettu rasti (objekti) löytyy tietorakenteesta. Jos ei, ei vaihdu.
+ * Funktio ei kaadu vaikka joukkueobjekti olisi väärää muotoa tai rastin indeksi väärä.
+ * 
+ * Vaihdettavan rastin ja joukkueen (Dynamic Duo, rasti 32) etsiminen tietorakenteesta tehdään muualla.
  * @param {Object} joukkue
  * @param {number} rastinIdx - rastin paikka joukkue.rastit-taulukossa
  * @param {Object} uusirasti
  * @param {string} Aika - Rastileimauksen aika. Jos tätä ei anneta, käytetään samaa aikaa kuin vanhassa korvattavassa leimauksessa
  */
  function vaihdaRasti(joukkue, rastinIdx, uusirasti, aika) {
-    //...
+    try {
+        const vanhaRasti = joukkue.rastit[rastinIdx];
+        if (!vanhaRasti) {  //jos rastin indeksi on väärä, funktio ei kaadu, eikä tee mitään muutakaan.
+            return;
+        }
+        let rastiOlemassa = false;
+
+        // data globaali
+        for (const r of data.rastit) {
+            if (Object.is(r, uusirasti)) {  //etsitään, onko tietorakenteessa rastia joka on annettu parametrina
+                rastiOlemassa = true;
+            }
+        }
+
+        if (!rastiOlemassa) {   //jos annettua rastia ei löydy tietorakenteesta, mitään ei tapahdu
+            return;
+        }
+
+        vanhaRasti.rasti = uusirasti;   //vaihdetaan annettu rasti vanhan tilalle
+        if (aika) {
+            vanhaRasti.aika = aika;     //jos aika on annettu parametrina, vaihdetaan uusi aika tilalle. Jos ei ole annettu, aikaa ei muuteta.
+        }
+    } catch (error) {
+        console.log('virhe vaihdaRasti:', error);
     }
+}
+
+function haeRastiKoodilla(arr, koodi) {
+    for(const rasti of arr) {
+        if (rasti.koodi.trim() === koodi.trim()){
+            return rasti;
+        }
+    }
+}
+
+function haeJoukkueNimella(arr, n) {
+    for(const joukkue of arr) {
+        if (joukkue.nimi.trim() === n.trim()) {
+            return joukkue;
+        }
+    }
+}
 
 //---------------------------------FUNKTIOKUTSUT---------------------------
 
 //------- taso 1 ---------
+
+const joukkue = {   //joukkueen luonti
+    nimi: 'Mallijoukkue',
+    jasenet: ['Lammi Tohtonen', 'Matti Meikäläinen'],
+    leimaustapa: [0, 2],
+    rastit: [],
+    sarja: undefined,
+    id: 99999,
+};
 
 lisaaJoukkue(data, joukkue, data.sarjat[2]);
 
@@ -143,3 +187,7 @@ tulostaRastit(data);
 poistaJoukkue(data, "Vara 1");
 poistaJoukkue(data, "Vara 2");
 poistaJoukkue(data, "Vapaat");
+
+const joukkue2 = haeJoukkueNimella(data.joukkueet, 'Dynamic Duo');
+const rasti = haeRastiKoodilla(data.rastit, '32');
+vaihdaRasti(joukkue2, 73, rasti, undefined);
