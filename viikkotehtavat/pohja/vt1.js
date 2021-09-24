@@ -115,7 +115,20 @@ function poistaJoukkue(data, nimi) { //haluttu data ja joukkueen nimi, string
     }
 }
 
+/**
+ * Vaihtaa pyydetyn rastileimauksen sijalle uuden rastin
+ * @param {Object} joukkue
+ * @param {number} rastinIdx - rastin paikka joukkue.rastit-taulukossa
+ * @param {Object} uusirasti
+ * @param {string} Aika - Rastileimauksen aika. Jos tätä ei anneta, käytetään samaa aikaa kuin vanhassa korvattavassa leimauksessa
+ */
+ function vaihdaRasti(joukkue, rastinIdx, uusirasti, aika) {
+    //...
+    }
+
 //---------------------------------FUNKTIOKUTSUT---------------------------
+
+//------- taso 1 ---------
 
 lisaaJoukkue(data, joukkue, data.sarjat[2]);
 
@@ -125,4 +138,8 @@ tulostaJoukkueet(data);
 log();  //rivinvaihto joukkueiden ja rastien tulostuksen välissä
 tulostaRastit(data);
 
+//------- taso 3 ----------
+
 poistaJoukkue(data, "Vara 1");
+poistaJoukkue(data, "Vara 2");
+poistaJoukkue(data, "Vapaat");
