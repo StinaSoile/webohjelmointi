@@ -104,6 +104,17 @@ const joukkue = {   //joukkueen luonti
     id: 99999,
 };
 
+//----------------------------------TASO 3-------------------------------
+
+/*poistaa datasta joukkueen annetun nimen perusteella*/
+function poistaJoukkue(data, nimi) { //haluttu data ja joukkueen nimi, string
+    for(let i = 0; i<data.joukkueet.length; i++) { //käydään läpi kaikki joukkueet
+        if (data.joukkueet[i].nimi === nimi) {  //jos löytyy joukkue jolla etsitty nimi,
+            data.joukkueet.splice(i, 1);    //poistetaan joukkue. Ei returnia, koska ajattelin että jos olisi useampia samannimisiä, tämä poistaisi kaikki.
+        }
+    }
+}
+
 //---------------------------------FUNKTIOKUTSUT---------------------------
 
 lisaaJoukkue(data, joukkue, data.sarjat[2]);
@@ -114,5 +125,4 @@ tulostaJoukkueet(data);
 log();  //rivinvaihto joukkueiden ja rastien tulostuksen välissä
 tulostaRastit(data);
 
-
-
+poistaJoukkue(data, "Vara 1");
