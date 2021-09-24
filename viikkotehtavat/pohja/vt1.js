@@ -8,9 +8,9 @@
 
 // Seuraavilla voit tutkia selaimen konsolissa käytössäsi olevaa tietorakennetta. 
 
+//----------------------------------TASO 1-------------------------------
 
-/* Tehtävä 1:
-yleiskäyttöinen funktio, joka tulostaa log-komennolla
+/* yleiskäyttöinen funktio, joka tulostaa log-komennolla
 joukkueiden nimet ja sarjat joukkueen nimen mukaan aakkosjärjestyksessä
     -kunkin joukkueen nimi omalle rivilleen
     -sarjan nimi joukkueen nimen jälkeen
@@ -18,26 +18,24 @@ joukkueiden nimet ja sarjat joukkueen nimen mukaan aakkosjärjestyksessä
     -isot ja pienet kirjaimet ei merkityksellisiä järjestämisessä
     -nimien ylimääräisiä välilyöntejä ei huomioida eikä tulosteta
 */
-
 function tulostaJoukkueet(data) {
-    let dataKopio  =  JSON.parse(JSON.stringify(data));
 
     const tiedot = [];
-    for(let joukkue of dataKopio.joukkueet) {
-        tiedot.push(joukkue.nimi.trim() + " " + joukkue.sarja.nimi);
+    for(let joukkue of data.joukkueet) {
+        tiedot.push(joukkue.nimi.trim() + " " + joukkue.sarja.nimi); //tallennetaan joukkueiden nimet ja sarjat uuteen taulukkoon
     }
-    const jarj = tiedot.sort((a, b) => {
-            if (a.toLowerCase() < b.toLowerCase()) {
-                return -1;
-            }
-            if (a.toLowerCase() > b.toLowerCase()) {
-                return 1;
-            }
-            return 0;
+    const jarj = tiedot.sort((a, b) => {    //uusi taulukko nimien mukaan aakkosjärjestykseen
+        if (a.toLowerCase() < b.toLowerCase()) {
+            return -1;
         }
-    );
+        if (a.toLowerCase() > b.toLowerCase()) {
+            return 1;
+        }
+        return 0;
+    }
+); 
     for(let rivi of jarj) {
-        log(rivi);
+        log(rivi); //tulostetaan taulukon sisältö rivi kerrallaan
     }
 }
 
@@ -45,22 +43,22 @@ function tulostaJoukkueet(data) {
 Sarjan oltava data.sarjat-taulukosta löytyvä objekti.
 Jos jokin parametreista puuttuu, funktio ei tee mitään. */
 function lisaaJoukkue(data, joukkue, sarja) {
-    if (!joukkue || !sarja || !data) {
+    if (!joukkue || !sarja || !data) { //jos jokin parametri puuttuu, funktio ei tee mitään
         return;
     }
-    for (let s of data.sarjat) {
-        if (Object.is(s, sarja)) {
-            joukkue.sarja = sarja;
-            data.joukkueet.push(joukkue);
+    for (let s of data.sarjat) {    //käydään sarjat läpi yksitellen,
+        if (Object.is(s, sarja)) {  //katsotaan, onko parametrina tullut sarja käsiteltävä sarja
+            joukkue.sarja = sarja;  //jos on, laitetaan kys sarja joukkueen sarjaksi
+            data.joukkueet.push(joukkue);   //ja lisätään joukkue dataan
             return;
         }
     }
 }
 
 function muutaSarjanNimi(data, vanhanimi, uusinimi) {
-    for (let s of data.sarjat) {
-        if (s.nimi === vanhanimi) {
-            s.nimi = uusinimi;
+    for (let s of data.sarjat) {    //käydään läpi sarjat.
+        if (s.nimi === vanhanimi) { //jos sarjoista löytyy sama nimi kuin parametrina tuotu,
+            s.nimi = uusinimi;      //nimetään se uudelleen
             return;
         }
     }
@@ -72,24 +70,32 @@ puolipisteellä erotettuna */
 function tulostaRastit(data) {
     let rastitLista = [];
     for(let i = 0 ; i<data.rastit.length; i++) {
-        rastitLista.push(data.rastit[i].koodi);
+        rastitLista.push(data.rastit[i].koodi);     //lisätään uuteen listaan kaikki rastien nimet, jottai muutella alkuperäistä
     }
     rastitLista.sort(
-        (a, b) => a.toLowerCase() > b.toLowerCase()
+        (a, b) => {    //uusi taulukko nimien mukaan aakkosjärjestykseen
+            if (a.toLowerCase() < b.toLowerCase()) {
+                return -1;
+            }
+            if (a.toLowerCase() > b.toLowerCase()) {
+                return 1;
+            }
+            return 0;
+        } //lista aakkosjärjestykseen
     );
     let str = "";
     for (let i=0; i<rastitLista.length; i++) {
-        if(isFinite(rastitLista[i][0])) {
-            str = str + rastitLista[i] + ";";
+        if(isFinite(rastitLista[i][0])) {   //jos nimen eka kirjain on numero (kokonaisluku on sama asia kun kyse on vain yhdestä merkistä)
+            str = str + rastitLista[i] + ";";   //niin lisätään nimi merkkijonon str perään puolipisteen kera
         }
     }
-    log(str);
+    log(str);   //tulostetaan merkkijono str
 }
 
+console.dir(data); 
+console.log(data); //alkuperäisessä tiedostossa ollut datan tulostus konsolille
 
-console.log(data);
-
-const joukkue = {
+const joukkue = {   //joukkueen luonti
     nimi: 'Mallijoukkue',
     jasenet: ['Lammi Tohtonen', 'Matti Meikäläinen'],
     leimaustapa: [0, 2],
@@ -98,13 +104,14 @@ const joukkue = {
     id: 99999,
 };
 
+//---------------------------------FUNKTIOKUTSUT---------------------------
 
 lisaaJoukkue(data, joukkue, data.sarjat[2]);
 
 muutaSarjanNimi(data, "8h", "10h");
 
 tulostaJoukkueet(data);
-log();
+log();  //rivinvaihto joukkueiden ja rastien tulostuksen välissä
 tulostaRastit(data);
 
 
