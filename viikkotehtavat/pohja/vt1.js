@@ -161,9 +161,75 @@ function haeJoukkueNimella(arr, n) {
     }
 }
 
-//---------------------------------FUNKTIOKUTSUT---------------------------
+/**
+ * hakee annetun joukkueen merkitsevät rastit set-objektiin.
+ * @param {Object} joukkue 
+ * @returns Set-objekti, johon on tallennettu koodit niistä joukkueen rasteista, jotka huomioidaan
+ */
+function haeRastit(joukkue) {
+    let arr = [];
+    let alku = false;
+    for(const r of joukkue.rastit) {    //käydään läpi kaikki joukkueen rastit
+        if (typeof r.rasti === 'object') {  //varmistetaan, että rasti on objekti eikä jotain outoa
+            if(r.rasti.koodi === "LAHTO") {     //jos rasti on lähtö,
+                arr = [];                       //nollataan aiemmin mahdollisesti kertyneet rastit
+                alku = true;                    //merkitään alku todeksi
+            } else if (r.rasti.koodi === 'MAALI' && alku) { //jos rasti on maali ja alku on totta, eli aiemmin on ollut lähtö,
+                return arr;                                 //palautetaan arr, johon on kertynyt tähänastiset rastit
+            } else {
+                for (const d of data.rastit) {
+                    if (Object.is(d, r.rasti)) {  //etsitään, onko tietokannassa rastia joka vastaa joukkueen merkitsemää
+                        arr.push(r.rasti.koodi);    //jos rasti vastaa tietokannan rastia, lisätään sen koodi listaan
+                    }
+                }
+            }
 
-//------- taso 1 ---------
+        }
+    }
+    return arr;
+}
+
+/**
+ * Kutsuu haeRastit-funktiota, ja laskee sen palauttaman setin jokaisen jäsenen
+ * ensimmäisen numeron yhteen. Jos ensimmäinen merkki ei ole numero, ei tee mitään tälle rastille.
+ * @param {Object} joukkue 
+ * @returns summa-kokonaisluku
+ */
+function laskePisteet(joukkue) {
+    let arr = haeRastit(joukkue);
+    let summa = 0;
+    for (const r of arr) {
+        if (isFinite(r[0])) {
+            summa = summa + parseInt(r[0]);
+        }
+    }
+    return summa;
+}
+
+
+function tulostaPisteet (data){
+    let arr  = [];
+    for ( const joukkue of data.joukkueet) {
+        arr.push({nimi: joukkue.nimi, pisteet: laskePisteet(joukkue)});
+    }
+    arr.sort(
+        (a, b) => {    //taulukko nimien mukaan aakkosjärjestykseen
+            if (a.nimi.trim().toLowerCase() < b.nimi.trim().toLowerCase()) {
+                return -1;
+            }
+            if (a.nimi.trim().toLowerCase() > b.nimi.trim().toLowerCase()) {
+                return 1;
+            }
+            return 0;
+        } 
+    );
+    arr.sort((a, b) => a.summa-b.summa);     //taulukko pisteiden mukaan järjestykseen
+    for (let joukkue of arr) {
+        log(joukkue.nimi + " (" + joukkue.pisteet + ")");
+    }
+}
+
+//---------------------------------FUNKTIOKUTSUT---------------------------
 
 const joukkue = {   //joukkueen luonti
     nimi: 'Mallijoukkue',
@@ -182,7 +248,11 @@ tulostaJoukkueet(data);
 log();  //rivinvaihto joukkueiden ja rastien tulostuksen välissä
 tulostaRastit(data);
 
-//------- taso 3 ----------
+log(`
+----------
+Taso 3
+----------
+`);
 
 poistaJoukkue(data, "Vara 1");
 poistaJoukkue(data, "Vara 2");
@@ -191,3 +261,5 @@ poistaJoukkue(data, "Vapaat");
 const joukkue2 = haeJoukkueNimella(data.joukkueet, 'Dynamic Duo');
 const rasti = haeRastiKoodilla(data.rastit, '32');
 vaihdaRasti(joukkue2, 73, rasti, undefined);
+
+tulostaPisteet(data);
