@@ -168,6 +168,7 @@ function haeJoukkueNimella(arr, n) {
  */
 function haeRastit(joukkue) {
     let arr = [];
+    let kayty = {};
     let alku = false;
     for(const r of joukkue.rastit) {    //käydään läpi kaikki joukkueen rastit
         if (typeof r.rasti === 'object') {  //varmistetaan, että rasti on objekti eikä jotain outoa
@@ -178,7 +179,8 @@ function haeRastit(joukkue) {
                 return arr;                                 //palautetaan arr, johon on kertynyt tähänastiset rastit
             } else {
                 for (const d of data.rastit) {
-                    if (Object.is(d, r.rasti)) {  //etsitään, onko tietokannassa rastia joka vastaa joukkueen merkitsemää
+                    if (Object.is(d, r.rasti) && kayty[r.rasti.koodi] === undefined) {  //etsitään, onko tietokannassa rastia joka vastaa joukkueen merkitsemää
+                        kayty[r.rasti.koodi] = true;
                         arr.push(r.rasti.koodi);    //jos rasti vastaa tietokannan rastia, lisätään sen koodi listaan
                     }
                 }
@@ -223,9 +225,9 @@ function tulostaPisteet (data){
             return 0;
         } 
     );
-    arr.sort((a, b) => a.summa-b.summa);     //taulukko pisteiden mukaan järjestykseen
+    arr.sort((a, b) => b.pisteet-a.pisteet);     //taulukko pisteiden mukaan järjestykseen
     for (let joukkue of arr) {
-        log(joukkue.nimi + " (" + joukkue.pisteet + ")");
+        log(joukkue.nimi + " (" + joukkue.pisteet + " p)");
     }
 }
 
