@@ -1,0 +1,9 @@
+#rastiField {
+    width: 20em
+}
+
+.kentta {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+}
