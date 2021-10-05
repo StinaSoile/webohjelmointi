@@ -120,8 +120,28 @@ lisaaRastilomake();
 let form = document.querySelector('form');
 form.addEventListener('submit', (e) => {
     e.preventDefault();
+    const inputs = form.querySelectorAll('input');
+    let lat = inputs[0].value;
+    let lon = inputs[1].value;
+    let koodi = inputs[2].value;
 
-    console.log('jea');
+    if (koodi.length === 0 || isNaN(lat) || isNaN(lon)) {
+        return;
+    }
+
+    let maxId = Math.max(...Object.keys(rastit));
+    let newId = maxId+1;
+    lat = lat.toString();
+    lon = lon.toString();
+
+    rastit[newId] = {
+        id: newId,
+        koodi,
+        lat,
+        lon,
+    };
+    
+    console.log(rastit[newId]);
 });
 
 // const joukkue = {   //joukkueen luonti
