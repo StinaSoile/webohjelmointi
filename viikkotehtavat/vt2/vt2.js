@@ -95,6 +95,7 @@ function lisaaRastilomake() {
     button.setAttribute('id', 'rasti');
     field.appendChild(button);
 }
+
 /* <form action="foobar.ei.toimi.example" method="post">
    <fieldset><legend>Rastin tiedot</legend>
         <label><span>Lat</span> <input type="text" value="" /></label>
@@ -103,6 +104,35 @@ function lisaaRastilomake() {
         <button id="rasti">Lisää rasti</button>
    </fieldset>
 </form> */
+
+
+function tulostaRastit() {
+
+    let arrRastit = Object.keys(rastit).map((x) => rastit[x]);
+    arrRastit.sort(
+        (a, b) => {
+            if(a.koodi < b.koodi) {
+                return -1;
+            }
+            if(a.koodi > b.koodi) {
+                return 1;
+            }
+            return 0;
+        }
+    );
+
+    let all = "    Rasti          Lat          Lon\n";
+    for (const rasti of arrRastit) {
+        all += rasti.koodi.padEnd(15) + rasti.lat.padEnd(13) + rasti.lon.padEnd(13) + "\n";
+    }
+    console.log(all);
+    // Rastit koodien mukaan aakkosjärjestyksessä muodossa
+    //     Rasti          Lat          Lon
+    // 31             62.120120    25.123456
+    // 32             62.123456    25.123456
+    // 3A             62.987654    25.012345
+    // ...
+}
 
 let joukkueet = luoJoukkueet();
 let sarjat = luoSarjat();
@@ -140,32 +170,9 @@ form.addEventListener('submit', (e) => {
         lat,
         lon,
     };
-    
-    console.log(rastit[newId]);
+    form.reset();
+
+    tulostaRastit();
 });
-
-// const joukkue = {   //joukkueen luonti
-//     nimi: 'Mallijoukkue',
-//     jasenet: ['Lammi Tohtonen', 'Matti Meikäläinen'],
-//     leimaustapa: [0, 2],
-//     rastit: [],
-//     sarja: undefined,
-//     id: 99999,
-// };
-
-// lisaaJoukkue(data, joukkue, data.sarjat[2]);
-
-// function lisaaJoukkue(data, joukkue, sarja) {
-//     if (!joukkue || !sarja || !data) { 
-//         return;
-//     }
-//     for (let s of data.sarjat) {    
-//         if (Object.is(s, sarja)) {  
-//             joukkue.sarja = sarja;  
-//             data.joukkueet.push(joukkue);  
-//             return;
-//         }
-//     }
-// }
 
 console.log(data);
