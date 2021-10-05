@@ -65,25 +65,44 @@ function getTr(sNimi, jNimi) {
     return tr;
 }
 
+//lisätään annettuun fieldiin kenttä jossa on annettu labelin teksti.
+// Tällä on siis tehty Lat, Lon ja Koodi - kentät
 function lisaaKentta(f, txt) {
-    let p = document.createElement('p');
     let label = document.createElement('label');
+    let span = document.createElement('span');
     let input = document.createElement('input');
     input.type = 'text';
     input.value = '';
-    label.textContent = txt;
-    p.appendChild(label);
-    p.appendChild(input);
-    p.className = 'kentta';
-    f.appendChild(p);
+    span.textContent = txt;
+    label.appendChild(span);
+    label.appendChild(input);
+    f.appendChild(label);
     return f;
 }
 
-/* <legend>Uusi joukkue</legend>
-<p><label>Nimi <input type="text" value="" /></label></p>
-<p><button name="joukkue">Lisää joukkue</button></p>
-<p><button name="muokkaa">Tallenna muutokset</button></p>
-</fieldset> */
+function lisaaRastilomake() {
+    let rastiForm = document.querySelector('form');
+    let field = document.createElement('fieldset');
+    rastiForm.appendChild(field);
+    let otsikko = document.createElement('legend');
+    otsikko.textContent = "Rastin tiedot";
+    field.appendChild(otsikko);
+    lisaaKentta(field, 'Lat');
+    lisaaKentta(field, 'Lon');
+    lisaaKentta(field, 'Koodi');
+    let button = document.createElement('button');
+    button.textContent = "Lisää rasti";
+    button.setAttribute('id', 'rasti');
+    field.appendChild(button);
+}
+/* <form action="foobar.ei.toimi.example" method="post">
+   <fieldset><legend>Rastin tiedot</legend>
+        <label><span>Lat</span> <input type="text" value="" /></label>
+        <label><span>Lon</span> <input type="text" value="" /></label>
+        <label><span>Koodi</span> <input type="text" value="" /></label>
+        <button id="rasti">Lisää rasti</button>
+   </fieldset>
+</form> */
 
 let joukkueet = luoJoukkueet();
 let sarjat = luoSarjat();
@@ -97,22 +116,36 @@ for (const i of joukkueet) {
     lista.appendChild(tr);
 }
 
-//Nämä ovat rastin lisäämislomakkeen luomista
-let rastiForm = document.querySelector('form');
-let field = document.createElement('fieldset');
-field.id = 'rastiField';
-rastiForm.appendChild(field);
-let otsikko = document.createElement('legend');
-otsikko.textContent = "Rastin tiedot";
-field.appendChild(otsikko);
-lisaaKentta(field, 'Lat');
-lisaaKentta(field, 'Lon');
-lisaaKentta(field, 'Koodi');
-let button = document.createElement('button');
-button.textContent = "Lisää rasti";
-field.appendChild(button);
+lisaaRastilomake();
+let form = document.querySelector('form');
+form.addEventListener('submit', (e) => {
+    e.preventDefault();
 
+    console.log('jea');
+});
 
+// const joukkue = {   //joukkueen luonti
+//     nimi: 'Mallijoukkue',
+//     jasenet: ['Lammi Tohtonen', 'Matti Meikäläinen'],
+//     leimaustapa: [0, 2],
+//     rastit: [],
+//     sarja: undefined,
+//     id: 99999,
+// };
 
+// lisaaJoukkue(data, joukkue, data.sarjat[2]);
+
+// function lisaaJoukkue(data, joukkue, sarja) {
+//     if (!joukkue || !sarja || !data) { 
+//         return;
+//     }
+//     for (let s of data.sarjat) {    
+//         if (Object.is(s, sarja)) {  
+//             joukkue.sarja = sarja;  
+//             data.joukkueet.push(joukkue);  
+//             return;
+//         }
+//     }
+// }
 
 console.log(data);

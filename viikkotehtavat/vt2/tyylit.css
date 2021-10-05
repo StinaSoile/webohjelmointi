@@ -1,8 +1,8 @@
-#rastiField {
+fieldset {
     width: 20em
 }
 
-.kentta {
+fieldset label {
     display: flex;
     justify-content: space-between;
     margin: 5px 0;
