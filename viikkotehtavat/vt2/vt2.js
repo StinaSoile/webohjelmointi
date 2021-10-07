@@ -32,9 +32,78 @@ function luoRastit() {
     return rastit;
 }
 
-// sorttaa joukkueet aakkosjärjestykseen ja sitten järjestykseen sarjan mukaan
+
+/**
+ * //KOPIOITU VT1:stä
+ * hakee annetun joukkueen merkitsevät rastit set-objektiin.
+ * @param {Object} joukkue 
+ * @returns Set-objekti, johon on tallennettu koodit niistä joukkueen rasteista, jotka huomioidaan
+ */
+ function haeRastit(joukkue) {
+    let arr = [];
+    let kayty = {};
+    let alku = false;
+    for(const r of joukkue.rastit) {    //käydään läpi kaikki joukkueen rastit
+        let raksi = rastit[r.rasti];    
+            if (typeof raksi === 'object') {  //varmistetaan, että rasti on objekti eikä jotain outoa
+                if(raksi.koodi === "LAHTO") {     //jos rasti on lähtö,
+                    arr = [];                       //nollataan aiemmin mahdollisesti kertyneet rastit
+                    alku = true;                    //merkitään alku todeksi
+                } else if (raksi.koodi === 'MAALI' && alku) { //jos rasti on maali ja alku on totta, eli aiemmin on ollut lähtö,
+                    return arr;                                 //palautetaan arr, johon on kertynyt tähänastiset rastit
+                } else {
+                    for (const d of data.rastit) {
+                        if (Object.is(d, raksi) && kayty[raksi.koodi] === undefined && alku === true) {  //etsitään, onko tietokannassa rastia joka vastaa joukkueen merkitsemää
+                            kayty[raksi.koodi] = true;
+                            arr.push(raksi.koodi);    //jos rasti vastaa tietokannan rastia, lisätään sen koodi listaan
+                        }
+                    }
+                }
+
+            }
+    }
+    return arr;
+}
+
+/**
+ * KOPIOITU VT1:stä
+ * Kutsuu haeRastit-funktiota, ja laskee sen palauttaman setin jokaisen jäsenen
+ * ensimmäisen numeron yhteen. Jos ensimmäinen merkki ei ole numero, ei tee mitään tälle rastille.
+ * @param {Object} joukkue 
+ * @returns summa-kokonaisluku
+ */
+function laskePisteet(joukkue) {
+    let arr = haeRastit(joukkue);
+    let summa = 0;
+    for (const r of arr) {
+        if (isFinite(r[0])) {
+            summa = summa + parseInt(r[0]);
+        }
+    }
+    return summa;
+}
+
+// sorttaa joukkueet aakkosjärjestykseen (taso 1), pistejärjestykseen (taso 3) ja sitten järjestykseen sarjan mukaan
 function jarjestaJoukkueet() {
-    joukkueet.sort((a, b) => a.nimi.trim().toLowerCase() > b.nimi.trim().toLowerCase());
+    joukkueet.sort((a, b) => a.nimi.trim().toLowerCase() > b.nimi.trim().toLowerCase()); // TASON 1 JUTTU
+    // for (let i = 0; i < joukkueet.length; i++) { // testausta varten
+    //     console.log(laskePisteet(joukkueet[i]));
+        
+    // }
+
+    joukkueet.sort(     // TASON 3 JUTTU
+        (a, b) => {
+            let aPisteet = laskePisteet(a);
+            let bPisteet = laskePisteet(b);
+            if(aPisteet > bPisteet) {
+                return -1;
+            }
+            if(aPisteet < bPisteet) {
+                return 1;
+            }
+            return 0;
+        }
+    );
 
     joukkueet.sort(
         (a, b) => {
@@ -52,8 +121,31 @@ function jarjestaJoukkueet() {
     return joukkueet;
 }
 
-// tekee yhden rivin listaan, muotoa <tr><td>sNimi</td><td>jNimi</th></tr>
 
+//KOPIO VT1:STÄ, MALLIKSI
+// function tulostaPisteet (data){
+//     let arr  = [];
+//     for ( const joukkue of data.joukkueet) {
+//         arr.push({nimi: joukkue.nimi, pisteet: laskePisteet(joukkue)});
+//     }
+//     arr.sort(
+//         (a, b) => {    //taulukko nimien mukaan aakkosjärjestykseen
+//             if (a.nimi.trim().toLowerCase() < b.nimi.trim().toLowerCase()) {
+//                 return -1;
+//             }
+//             if (a.nimi.trim().toLowerCase() > b.nimi.trim().toLowerCase()) {
+//                 return 1;
+//             }
+//             return 0;
+//         } 
+//     );
+//     arr.sort((a, b) => b.pisteet-a.pisteet);     //taulukko pisteiden mukaan järjestykseen
+//     for (let joukkue of arr) {
+//         log(joukkue.nimi + " (" + joukkue.pisteet + " p)");
+//     }
+// }
+
+// tekee yhden rivin listaan, muotoa <tr><td>sNimi</td><td>jNimi</th></tr>
 function getTr(sNimi, jNimi) {
     let tr = document.createElement('tr');
     let a = document.createElement('td');
@@ -151,9 +243,9 @@ let form = document.querySelector('form');
 form.addEventListener('submit', (e) => {
     e.preventDefault();
     const inputs = form.querySelectorAll('input');
-    let lat = inputs[0].value;
-    let lon = inputs[1].value;
-    let koodi = inputs[2].value;
+    let lat = inputs[0].value.trim();
+    let lon = inputs[1].value.trim();
+    let koodi = inputs[2].value.trim();
 
     if (koodi.length === 0 || isNaN(lat) || isNaN(lon)) {
         return;
