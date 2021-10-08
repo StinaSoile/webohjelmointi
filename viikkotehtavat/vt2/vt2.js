@@ -92,10 +92,8 @@ function laskePisteet(joukkue) {
 function jarjestaJoukkueet() {
     joukkueet.sort((a, b) => a.nimi.trim().toLowerCase() > b.nimi.trim().toLowerCase()); // TASON 1 JUTTU
     // for (let i = 0; i < joukkueet.length; i++) { // testausta varten
-    //     console.log(laskePisteet(joukkueet[i]));
-        
+    //     console.log(laskePisteet(joukkueet[i]));     
     // }
-
     joukkueet.sort(     // TASON 3 JUTTU
         (a, b) => {
             if(a.pisteet > b.pisteet) {
@@ -107,7 +105,6 @@ function jarjestaJoukkueet() {
             return 0;
         }
     );
-
     joukkueet.sort(
         (a, b) => {
             let aKesto = sarjat[a.sarja].kesto;
@@ -125,30 +122,8 @@ function jarjestaJoukkueet() {
 }
 
 
-//KOPIO VT1:STÄ, MALLIKSI  
-// function tulostaPisteet (data){
-//     let arr  = [];
-//     for ( const joukkue of data.joukkueet) {
-//         arr.push({nimi: joukkue.nimi, pisteet: laskePisteet(joukkue)});
-//     }
-//     arr.sort(
-//         (a, b) => {    //taulukko nimien mukaan aakkosjärjestykseen
-//             if (a.nimi.trim().toLowerCase() < b.nimi.trim().toLowerCase()) {
-//                 return -1;
-//             }
-//             if (a.nimi.trim().toLowerCase() > b.nimi.trim().toLowerCase()) {
-//                 return 1;
-//             }
-//             return 0;
-//         } 
-//     );
-//     arr.sort((a, b) => b.pisteet-a.pisteet);     //taulukko pisteiden mukaan järjestykseen
-//     for (let joukkue of arr) {
-//         log(joukkue.nimi + " (" + joukkue.pisteet + " p)");
-//     }
-// }
-
-// tekee yhden rivin listaan, muotoa <tr><td>sNimi</td><td>jNimi</td></tr>
+// tekee yhden rivin joukkuelistaan, muotoa:
+// <tr> <td>sarja</td> <td> <a href="#joukkue">joukkueenNimi</a> <br />Etunimi1 Sukunimi1, Etunimi2 Sukunimi2,...</td> <td>138</td> </tr>
 function getTr(sarja, joukkue) {
     const tr = document.createElement('tr');
     const s = document.createElement('td');
@@ -159,7 +134,7 @@ function getTr(sarja, joukkue) {
     a.href = '../pohja.xhtml';
     a.textContent = joukkue.nimi;
     const br = document.createElement('br');
-    const jasenet = joukkue.jasenet.join(', ')
+    const jasenet = joukkue.jasenet.join(', ');
     const txt = document.createTextNode(jasenet);
     j.appendChild(a);
     j.appendChild(br);
@@ -173,21 +148,65 @@ function getTr(sarja, joukkue) {
     return tr;
 }
 
-//lisätään annettuun fieldiin kenttä jossa on annettu labelin teksti.
-// Tällä on siis tehty Lat, Lon ja Koodi - kentät
-function lisaaKentta(f, txt) {
-    let label = document.createElement('label');
-    let span = document.createElement('span');
-    let input = document.createElement('input');
-    input.type = 'text';
-    input.value = '';
-    span.textContent = txt;
-    label.appendChild(span);
-    label.appendChild(input);
-    f.appendChild(label);
-    return f;
+
+// <fieldset>
+//     <legend>Uusi joukkue</legend>
+//     <p><label>Nimi <input type="text" value="" /></label></p>
+//     <p><button name="joukkue">Lisää joukkue</button></p>
+//     <p><button name="muokkaa">Tallenna muutokset</button></p>
+// </fieldset>
+function lisaaJoukkuelomake() {
+    const lomake = document.getElementById('joukkuelomake');
+    const nimiInput = lomake.querySelector('input');
+    // const nimiInput = inputs[0];
+    // console.log(nimiInput);
+    // nimiInput.addEventListener('keyup', function(e){
+    //     console.log(e.target.value);
+    // });
+    const field = document.createElement('fieldset');
+    field.setAttribute('id', 'jasenField');
+    const otsikko = document.createElement('legend');
+    otsikko.textContent = "Jäsenet";
+    field.appendChild(otsikko);
+    nimiInput.parentNode.parentNode.after(field);
+
+    for (let i = 1; i < 3; i++) {
+        const p = document.createElement('p');
+        const l = document.createElement('label');
+        l.textContent = "Jäsen " + i;
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.value = '';
+        l.appendChild(inp);
+        p.appendChild(l);
+        field.appendChild(p);
+    }
+    let inputs = field.getElementsByTagName('input');
+    inputs[1].addEventListener("input", addNew);
+    // const x = nimiInput.parentNode.parentNode.nextElementSibling;
+    // console.log(x);
+    
 }
 
+
+function addNew(e) {
+    const field = document.getElementById('jasenField');
+    let inputs = field.getElementsByTagName('input');
+    if (inputs[0].value.trim() != '') {
+        console.log('nyt lisättäis uusi jäsenkenttä');
+    }
+}
+
+
+/* Tehdään rastin lisäämislomake annettua muotoa:
+<form action="foobar.ei.toimi.example" method="post">
+   <fieldset><legend>Rastin tiedot</legend>
+        <label><span>Lat</span> <input type="text" value="" /></label>
+        <label><span>Lon</span> <input type="text" value="" /></label>
+        <label><span>Koodi</span> <input type="text" value="" /></label>
+        <button id="rasti">Lisää rasti</button>
+   </fieldset>
+</form> */
 function lisaaRastilomake() {
     let rastiForm = document.querySelector('form');
     let field = document.createElement('fieldset');
@@ -204,18 +223,31 @@ function lisaaRastilomake() {
     field.appendChild(button);
 }
 
-/* <form action="foobar.ei.toimi.example" method="post">
-   <fieldset><legend>Rastin tiedot</legend>
-        <label><span>Lat</span> <input type="text" value="" /></label>
-        <label><span>Lon</span> <input type="text" value="" /></label>
-        <label><span>Koodi</span> <input type="text" value="" /></label>
-        <button id="rasti">Lisää rasti</button>
-   </fieldset>
-</form> */
 
 
+//lisätään annettuun fieldiin kenttä jossa on annettu labelin teksti.
+// Tällä on siis tehty Lat, Lon ja Koodi - kentät rastin lisäyslomakkeessa
+function lisaaKentta(f, txt) {
+    let label = document.createElement('label');
+    let span = document.createElement('span');
+    let input = document.createElement('input');
+    input.type = 'text';
+    input.value = '';
+    span.textContent = txt;
+    label.appendChild(span);
+    label.appendChild(input);
+    f.appendChild(label);
+    return f;
+}
+
+
+    // Tulostetaan konsoliin rastit koodien mukaan aakkosjärjestyksessä muodossa
+    //     Rasti          Lat          Lon
+    // 31             62.120120    25.123456
+    // 32             62.123456    25.123456
+    // 3A             62.987654    25.012345
+    // ...
 function tulostaRastit() {
-
     let arrRastit = Object.keys(rastit).map((x) => rastit[x]);
     arrRastit.sort(
         (a, b) => {
@@ -228,18 +260,12 @@ function tulostaRastit() {
             return 0;
         }
     );
-
     let all = "    Rasti          Lat          Lon\n";
     for (const rasti of arrRastit) {
         all += rasti.koodi.padEnd(15) + rasti.lat.padEnd(13) + rasti.lon.padEnd(13) + "\n";
     }
     console.log(all);
-    // Rastit koodien mukaan aakkosjärjestyksessä muodossa
-    //     Rasti          Lat          Lon
-    // 31             62.120120    25.123456
-    // 32             62.123456    25.123456
-    // 3A             62.987654    25.012345
-    // ...
+
 }
 
 let rastit = luoRastit();
@@ -260,6 +286,8 @@ for (const i of joukkueet) {
 lisaaRastilomake();
 let form = document.querySelector('form');
 
+
+// tehdään rastilomakkeen toiminnot 
 form.addEventListener('submit', (e) => {
     e.preventDefault();
     const inputs = form.querySelectorAll('input');
@@ -270,21 +298,21 @@ form.addEventListener('submit', (e) => {
     if (koodi.length === 0 || isNaN(lat) || isNaN(lon)) {
         return;
     }
-
     let maxId = Math.max(...Object.keys(rastit));
     let newId = maxId+1;
     lat = lat.toString();
     lon = lon.toString();
-
-    rastit[newId] = {
+    const r = {
         id: newId,
         koodi,
         lat,
         lon,
     };
+    rastit[newId] = r;
+    data.rastit.push(r);
     form.reset();
-
     tulostaRastit();
 });
+lisaaJoukkuelomake();
 
 console.log(data);
