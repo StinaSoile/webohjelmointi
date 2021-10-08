@@ -6,7 +6,12 @@
 
 // Kopio joukkueesta jotta voin käyttää sortia
 function luoJoukkueet() { 
-    let joukkueet = JSON.parse(JSON.stringify(data.joukkueet));
+    // let joukkueet = JSON.parse(JSON.stringify(data.joukkueet));
+    let joukkueet = data.joukkueet.map((j) => {
+        j.pisteet = laskePisteet(j);
+        return j;
+    });
+    // console.log(joukkueet);
     return joukkueet;
 }
 
@@ -93,12 +98,10 @@ function jarjestaJoukkueet() {
 
     joukkueet.sort(     // TASON 3 JUTTU
         (a, b) => {
-            let aPisteet = laskePisteet(a);
-            let bPisteet = laskePisteet(b);
-            if(aPisteet > bPisteet) {
+            if(a.pisteet > b.pisteet) {
                 return -1;
             }
-            if(aPisteet < bPisteet) {
+            if(a.pisteet < b.pisteet) {
                 return 1;
             }
             return 0;
@@ -122,7 +125,7 @@ function jarjestaJoukkueet() {
 }
 
 
-//KOPIO VT1:STÄ, MALLIKSI
+//KOPIO VT1:STÄ, MALLIKSI  
 // function tulostaPisteet (data){
 //     let arr  = [];
 //     for ( const joukkue of data.joukkueet) {
@@ -145,15 +148,27 @@ function jarjestaJoukkueet() {
 //     }
 // }
 
-// tekee yhden rivin listaan, muotoa <tr><td>sNimi</td><td>jNimi</th></tr>
-function getTr(sNimi, jNimi) {
-    let tr = document.createElement('tr');
-    let a = document.createElement('td');
-    a.textContent = sNimi;
-    let b = document.createElement('td');
-    b.textContent = jNimi;
-    tr.appendChild(a);
-    tr.appendChild(b);
+// tekee yhden rivin listaan, muotoa <tr><td>sNimi</td><td>jNimi</td></tr>
+function getTr(sarja, joukkue) {
+    const tr = document.createElement('tr');
+    const s = document.createElement('td');
+    s.textContent = sarja;
+    
+    const j = document.createElement('td');
+    const a = document.createElement('a');
+    a.href = './';
+    a.textContent = joukkue.nimi;
+    const br = document.createElement('br');
+    const txt = document.createTextNode('dsknads, sfsskjs sjds dslkjdskjds');
+    j.appendChild(a);
+    j.appendChild(br);
+    j.appendChild(txt);
+    
+    const p = document.createElement('td');
+    p.textContent = joukkue.pisteet;
+    tr.appendChild(s);
+    tr.appendChild(j);
+    tr.appendChild(p);
     return tr;
 }
 
@@ -226,20 +241,24 @@ function tulostaRastit() {
     // ...
 }
 
+let rastit = luoRastit();
 let joukkueet = luoJoukkueet();
 let sarjat = luoSarjat();
-let rastit = luoRastit();
 jarjestaJoukkueet();
 
-//lisätään kaikki joukkueet oikeassa järjestyksessä listaan
+//lisätään kaikki joukkueet oikeassa järjestyksessä listaan, myös sarja ja pisteet
 let lista = document.querySelector('#tupa > table');
+const th = document.createElement('th');
+th.textContent = "Pisteet";
+lista.querySelector('tr').appendChild(th);
 for (const i of joukkueet) {
-    let tr = getTr(sarjat[i.sarja].nimi, i.nimi);
+    let tr = getTr(sarjat[i.sarja].nimi, i);
     lista.appendChild(tr);
 }
 
 lisaaRastilomake();
 let form = document.querySelector('form');
+
 form.addEventListener('submit', (e) => {
     e.preventDefault();
     const inputs = form.querySelectorAll('input');
