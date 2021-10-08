@@ -156,10 +156,11 @@ function getTr(sarja, joukkue) {
     
     const j = document.createElement('td');
     const a = document.createElement('a');
-    a.href = './';
+    a.href = '../pohja.xhtml';
     a.textContent = joukkue.nimi;
     const br = document.createElement('br');
-    const txt = document.createTextNode('dsknads, sfsskjs sjds dslkjdskjds');
+    const jasenet = joukkue.jasenet.join(', ')
+    const txt = document.createTextNode(jasenet);
     j.appendChild(a);
     j.appendChild(br);
     j.appendChild(txt);
