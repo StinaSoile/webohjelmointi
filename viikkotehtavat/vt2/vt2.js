@@ -6,8 +6,8 @@
 
 // Kopio joukkueesta jotta voin käyttää sortia
 function luoJoukkueet() { 
-    // let joukkueet = JSON.parse(JSON.stringify(data.joukkueet));
-    let joukkueet = data.joukkueet.map((j) => {
+    let joukkueet = JSON.parse(JSON.stringify(data.joukkueet));
+    joukkueet = joukkueet.map((j) => {
         j.pisteet = laskePisteet(j);
         return j;
     });
@@ -189,11 +189,45 @@ function lisaaJoukkuelomake() {
 }
 
 
+// Lisätään uusi tyhjä input aina kun edellisissä on tekstiä, poistetaan ylimääräiset tyhjät inputit.
+// Tässä on kopioitu ja muokattu kurssin sivuilta löytyvää mallia:
+// https://appro.mit.jyu.fi/tiea2120/luennot/forms/ ensimmäinen esimerkki, Dynaaminen lomake
 function addNew(e) {
     const field = document.getElementById('jasenField');
     let inputs = field.getElementsByTagName('input');
     if (inputs[0].value.trim() != '') {
         console.log('nyt lisättäis uusi jäsenkenttä');
+        let viimeinen_tyhja = -1; // viimeisen tyhjän kentän paikka listassa
+        for(let i=inputs.length-1 ; i>0; i--) { // inputit näkyy ulommasta funktiosta
+            let input = inputs[i];
+
+            // jos on jo löydetty tyhjä kenttä ja löydetään uusi niin poistetaan viimeinen tyhjä kenttä
+            // kenttä on aina label-elementin sisällä eli oikeasti poistetaan label ja samalla sen sisältö
+            if ( viimeinen_tyhja > -1 && input.value.trim() == "") { // ei kelpuuteta pelkkiä välilyöntejä
+                let poistettava = inputs[viimeinen_tyhja].parentNode; // parentNode on label, joka sisältää inputin
+                field.removeChild( poistettava );
+                viimeinen_tyhja = i;
+            }
+            // ei ole vielä löydetty yhtään tyhjää joten otetaan ensimmäinen tyhjä talteen
+            if ( viimeinen_tyhja == -1 && input.value.trim() == "") {
+                    viimeinen_tyhja = i;
+            }
+        }
+
+        // ei ollut tyhjiä kenttiä joten lisätään yksi
+        if ( viimeinen_tyhja == -1) {
+            let label = document.createElement("label");
+            label.textContent = "Jäsen";
+            let input = document.createElement("input");
+            input.setAttribute("type", "text");
+            input.addEventListener("input", addNew);
+            field.appendChild(label).appendChild(input);
+        }
+        // jos halutaan kenttiin numerointi
+        for(let i=0; i<inputs.length; i++) { // inputit näkyy ulommasta funktiosta
+                let label = inputs[i].parentNode;
+                label.firstChild.nodeValue = "Jäsen " + (i+1); // päivitetään labelin ekan lapsen eli tekstin sisältö
+        }
     }
 }
 
