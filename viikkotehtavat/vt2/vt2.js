@@ -144,8 +144,12 @@ function getTr(sarja, joukkue) {
     
     const j = document.createElement('td');
     const a = document.createElement('a');
-    a.href = '../pohja.xhtml';
+    a.href = '#joukkuelomake';
     a.textContent = joukkue.nimi;
+    a.addEventListener('click', function () {
+        muokattavaJoukkue = JSON.parse(JSON.stringify(joukkue));
+        lisaaJoukkuelomake();
+    });
     const br = document.createElement('br');
     const jasenet = joukkue.jasenet.join(', ');
     const txt = document.createTextNode(jasenet);
@@ -172,23 +176,49 @@ function lisaaJoukkuelomake() {
     const lomake = document.getElementById('joukkuelomake');
     const nimiInput = lomake.querySelector('input');
     nimiInput.addEventListener('input', inputHandler);
+    nimiInput.value ='';
+    // poistetaan mahdollinen nimiInputin jälkeen oleva fieldset:
+    let next = nimiInput.parentNode.parentNode.nextElementSibling; 
+    if (next.nodeName === 'fieldset') {
+        next.remove();
+    }
     const field = document.createElement('fieldset');
     field.setAttribute('id', 'jasenField');
     const otsikko = document.createElement('legend');
     otsikko.textContent = "Jäsenet";
     field.appendChild(otsikko);
     nimiInput.parentNode.parentNode.after(field);
-    addInput(field);
-    addInput(field);
     const buttonit = lomake.querySelectorAll('button');
-    buttonit[0].disabled = true;
-    buttonit[0].hidden = false;
-    buttonit[1].hidden = true;
-    lomake.addEventListener('submit', addJoukkue);
+    if (muokattavaJoukkue === 'undefined') {
+        addInput(field);
+        addInput(field);
+        buttonit[0].disabled = true;
+        buttonit[0].hidden = false;
+        buttonit[1].hidden = true;
+        lomake.addEventListener('submit', addJoukkue);
+    }
+    
+    if (muokattavaJoukkue != 'undefined') {
+        buttonit[0].hidden = true;
+        buttonit[1].hidden = false;
+        let ylaotsikko = lomake.querySelector('legend');
+        ylaotsikko.textContent = 'Tallenna muutokset';
+        //joukkueen tiedot lomakkeeseen:
+        nimiInput.value = muokattavaJoukkue.nimi;
+        for (const jasen of muokattavaJoukkue.jasenet) {
+            addInput(field, jasen);
+        }
+        addInput(field);
+        lomake.addEventListener('submit', changeJoukkue);
+    }
+}
 
-    // if (muokattavaJoukkue === 'undefined') {
-    //     console.log('muokkausButton');
-    // }
+
+function changeJoukkue(e) {
+    e.preventDefault();
+    //tsekkaa joukkueen id:n ja muokkaa sen mukaan kys joukkuetta
+    muokattavaJoukkue = 'undefined';
+    lisaaJoukkuelomake();
 }
 
 
@@ -231,11 +261,12 @@ function addJoukkue(e) {
     data.joukkueet.push(newJoukkue);
     joukkueet.push(newJoukkue2);
     jarjestaJoukkueet();
-    lomake.reset();
+    lisaaJoukkuelomake(); //tämä myös resettaa lomakkeen, 
+    //siksi kutsun tässä kun lomake.reset() ei toiminut kuten piti.
 }
 
 
-function addInput(parent) {
+function addInput(parent, jasen) {
     const p = document.createElement('p');
     const l = document.createElement('label');
     l.textContent = "Jäsen";
@@ -248,6 +279,9 @@ function addInput(parent) {
     parent.appendChild(p);
     let inputs = parent.querySelectorAll('input');
     nimeaKentat(inputs);
+    if (jasen) {
+        inp.value = jasen;
+    }
 }
 
 
@@ -397,7 +431,7 @@ function tulostaRastit() {
 
 }
 
-// let muokattavaJoukkue = 'undefined';
+let muokattavaJoukkue = 'undefined';
 let rastit = luoRastit();
 let joukkueet = luoJoukkueet();
 let sarjat = luoSarjat();
