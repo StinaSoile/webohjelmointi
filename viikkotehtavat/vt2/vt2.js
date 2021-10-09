@@ -171,28 +171,15 @@ function getTr(sarja, joukkue) {
 function lisaaJoukkuelomake() {
     const lomake = document.getElementById('joukkuelomake');
     const nimiInput = lomake.querySelector('input');
-
+    nimiInput.addEventListener('input', inputHandler);
     const field = document.createElement('fieldset');
     field.setAttribute('id', 'jasenField');
     const otsikko = document.createElement('legend');
     otsikko.textContent = "Jäsenet";
     field.appendChild(otsikko);
     nimiInput.parentNode.parentNode.after(field);
-
-    for (let i = 1; i < 3; i++) {
-        const p = document.createElement('p');
-        const l = document.createElement('label');
-        l.textContent = "Jäsen " + i;
-        const inp = document.createElement('input');
-        inp.type = 'text';
-        inp.value = '';
-        l.appendChild(inp);
-        p.appendChild(l);
-        field.appendChild(p);
-    }
-    let inputs = field.getElementsByTagName('input');
-    inputs[0].addEventListener("input", inputHandler);
-    inputs[1].addEventListener("input", inputHandler);
+    addInput(field);
+    addInput(field);
     const buttonit = lomake.querySelectorAll('button');
     buttonit[0].disabled = true;
     buttonit[0].hidden = false;
@@ -221,7 +208,7 @@ function addJoukkue(e) {
     }
     let maxId = Math.max(...iideet);
     let newId = maxId + 1;
-    //lisätään joukkue sekä omaan listaan, jossa on käytössä pisteet, että dataan ilman pisteitä
+    //lisätään joukkue omaan listaan jossa on käytössä pisteet, ja dataan ilman pisteitä
     const newJoukkue = {
         nimi: inputs[0].value.trim(),
         jasenet: jasenet,
@@ -240,57 +227,75 @@ function addJoukkue(e) {
         id: newId,
     };
 
+
     data.joukkueet.push(newJoukkue);
     joukkueet.push(newJoukkue2);
     jarjestaJoukkueet();
     lomake.reset();
 }
 
+
+function addInput(parent) {
+    const p = document.createElement('p');
+    const l = document.createElement('label');
+    l.textContent = "Jäsen";
+    const inp = document.createElement('input');
+    inp.setAttribute("type", "text");
+    inp.value = '';
+    inp.addEventListener('input', inputHandler);
+    l.appendChild(inp);
+    p.appendChild(l);
+    parent.appendChild(p);
+    let inputs = parent.querySelectorAll('input');
+    nimeaKentat(inputs);
+}
+
+
+function nimeaKentat(inputs) {
+      // halutaan kenttiin numerointi
+    const field = document.getElementById('jasenField');
+    inputs = field.querySelectorAll('input');
+
+    for(let i=0; i<inputs.length; i++) {
+        let label = inputs[i].parentNode;
+        label.firstChild.nodeValue = "Jäsen " + (i+1);
+    }
+}
+
 // Lisätään uusi tyhjä input aina kun edellisissä on tekstiä, poistetaan ylimääräiset tyhjät inputit.
 // Tässä on kopioitu ja muokattu kurssin sivuilta löytyvää mallia:
 // https://appro.mit.jyu.fi/tiea2120/luennot/forms/ ensimmäinen esimerkki, Dynaaminen lomake
 function inputHandler(e) {
+    const form = document.getElementById('joukkuelomake');
     const field = document.getElementById('jasenField');
-    let inputs = field.getElementsByTagName('input');
-    if (inputs[0].value.trim() != '') {
-        let viimeinen_tyhja = -1; // viimeisen tyhjän kentän paikka listassa
-        for(let i=inputs.length-1 ; i>0; i--) { // inputit näkyy ulommasta funktiosta
-            let input = inputs[i];
+    let inputs = field.querySelectorAll('input');
+    const buttons = form.querySelectorAll('button');
+    const emptyInputs = [];
 
-            // jos on jo löydetty tyhjä kenttä ja löydetään uusi niin poistetaan viimeinen tyhjä kenttä
-            // kenttä on aina label-elementin sisällä eli oikeasti poistetaan label ja samalla sen sisältö
-            if ( viimeinen_tyhja > -1 && input.value.trim() == "") { // ei kelpuuteta pelkkiä välilyöntejä
-                let poistettava = inputs[viimeinen_tyhja].parentNode.parentNode; // parentNode on label, joka sisältää inputin
-                field.removeChild( poistettava );
-                viimeinen_tyhja = i;
-            }
-            // ei ole vielä löydetty yhtään tyhjää joten otetaan ensimmäinen tyhjä talteen
-            if ( viimeinen_tyhja == -1 && input.value.trim() == "") {
-                    viimeinen_tyhja = i;
-            }
-        }
-
-        // ei ollut tyhjiä kenttiä joten lisätään yksi
-        if ( viimeinen_tyhja == -1) {
-            let p = document.createElement('p');
-            let label = document.createElement("label");
-            label.textContent = "Jäsen";
-            let input = document.createElement("input");
-            input.setAttribute("type", "text");
-            input.addEventListener("input", inputHandler);
-            field.appendChild(p).appendChild(label).appendChild(input);
-        }
-        // jos halutaan kenttiin numerointi
-        for(let i=0; i<inputs.length; i++) { // inputit näkyy ulommasta funktiosta
-                let label = inputs[i].parentNode;
-                label.firstChild.nodeValue = "Jäsen " + (i+1); // päivitetään labelin ekan lapsen eli tekstin sisältö
+    // lisätään empty inputtiin kaikki tyhjät
+    for (const input of inputs) {
+        if (input.value.trim() === '') {
+            emptyInputs.push(input);
         }
     }
-    const buttonit = document.getElementById('joukkuelomake').querySelectorAll('button');
-    const jNimi = document.getElementById('joukkuelomake').querySelector('input');
-
+    // jos emptyssä on enemmän kuin 1 inputti ja yhteensä inputteja on 2 tai enemmän
+    // niin poistetaan emptyistä kaikki paitsi yksi
+    if (emptyInputs.length > 1 && inputs.length > 2) {
+        for (let i = 1; i < emptyInputs.length; i++) {
+            emptyInputs[i].parentNode.parentNode.remove();
+        }
+    }
+    // jos emptyjä ei ole, lisätään yksi.
+    if (emptyInputs.length === 0) {
+        addInput(field);
+    }
+    inputs = field.querySelectorAll('input');
+    nimeaKentat(inputs);
+    const jNimi = form.querySelector('input');
     if (inputs.length>2 && jNimi.value.trim().length > 0) { 
-    buttonit[0].disabled = false;
+    buttons[0].disabled = false;
+    } else {
+        buttons[0].disabled = true;
     }
     
 }
