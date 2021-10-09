@@ -118,6 +118,19 @@ function jarjestaJoukkueet() {
             return 0;
         }
     );
+    //lisätään kaikki joukkueet oikeassa järjestyksessä listaan, myös sarja ja pisteet
+    let lista = document.querySelector('#tupa > table');
+    const th = document.createElement('th');
+    th.textContent = "Pisteet";
+    // tyhjennetään listasta jo mahdollisesti tulostetut joukkueet
+    while (lista.children[2]) {      // jätetään kaksi ensimmäistä child elementiä jotka olivat valmiina alunperin
+        lista.removeChild(lista.lastChild);
+    }
+    lista.querySelector('tr').appendChild(th);
+    for (const i of joukkueet) {
+        let tr = getTr(sarjat[i.sarja].nimi, i);
+        lista.appendChild(tr);
+    }
     return joukkueet;
 }
 
@@ -158,11 +171,7 @@ function getTr(sarja, joukkue) {
 function lisaaJoukkuelomake() {
     const lomake = document.getElementById('joukkuelomake');
     const nimiInput = lomake.querySelector('input');
-    // const nimiInput = inputs[0];
-    // console.log(nimiInput);
-    // nimiInput.addEventListener('keyup', function(e){
-    //     console.log(e.target.value);
-    // });
+
     const field = document.createElement('fieldset');
     field.setAttribute('id', 'jasenField');
     const otsikko = document.createElement('legend');
@@ -182,21 +191,68 @@ function lisaaJoukkuelomake() {
         field.appendChild(p);
     }
     let inputs = field.getElementsByTagName('input');
-    inputs[1].addEventListener("input", addNew);
-    // const x = nimiInput.parentNode.parentNode.nextElementSibling;
-    // console.log(x);
-    
+    inputs[0].addEventListener("input", inputHandler);
+    inputs[1].addEventListener("input", inputHandler);
+    const buttonit = lomake.querySelectorAll('button');
+    buttonit[0].disabled = true;
+    buttonit[0].hidden = false;
+    buttonit[1].hidden = true;
+    lomake.addEventListener('submit', addJoukkue);
+
+    // if (muokattavaJoukkue === 'undefined') {
+    //     console.log('muokkausButton');
+    // }
 }
 
+
+function addJoukkue(e) {
+    e.preventDefault();
+    const lomake = document.getElementById('joukkuelomake');
+    const inputs = lomake.querySelectorAll('input');
+    const jasenet = [];
+    for (let i = 1; i < inputs.length; i++) {
+        if (inputs[i].value.trim().length > 0) {
+            jasenet.push(inputs[i].value.trim());
+        }       
+    }
+    const iideet= [];
+    for (const joukkue of joukkueet) {
+        iideet.push(joukkue.id);
+    }
+    let maxId = Math.max(...iideet);
+    let newId = maxId + 1;
+    //lisätään joukkue sekä omaan listaan, jossa on käytössä pisteet, että dataan ilman pisteitä
+    const newJoukkue = {
+        nimi: inputs[0].value.trim(),
+        jasenet: jasenet,
+        rastit: [],
+        leimaustapa: [0],
+        sarja: 123456,
+        id: newId,
+    };
+    const newJoukkue2 = {
+        nimi: inputs[0].value.trim(),
+        jasenet: jasenet,
+        rastit: [],
+        pisteet: 0,
+        leimaustapa: [0],
+        sarja: 123456,
+        id: newId,
+    };
+
+    data.joukkueet.push(newJoukkue);
+    joukkueet.push(newJoukkue2);
+    jarjestaJoukkueet();
+    lomake.reset();
+}
 
 // Lisätään uusi tyhjä input aina kun edellisissä on tekstiä, poistetaan ylimääräiset tyhjät inputit.
 // Tässä on kopioitu ja muokattu kurssin sivuilta löytyvää mallia:
 // https://appro.mit.jyu.fi/tiea2120/luennot/forms/ ensimmäinen esimerkki, Dynaaminen lomake
-function addNew(e) {
+function inputHandler(e) {
     const field = document.getElementById('jasenField');
     let inputs = field.getElementsByTagName('input');
     if (inputs[0].value.trim() != '') {
-        console.log('nyt lisättäis uusi jäsenkenttä');
         let viimeinen_tyhja = -1; // viimeisen tyhjän kentän paikka listassa
         for(let i=inputs.length-1 ; i>0; i--) { // inputit näkyy ulommasta funktiosta
             let input = inputs[i];
@@ -204,7 +260,7 @@ function addNew(e) {
             // jos on jo löydetty tyhjä kenttä ja löydetään uusi niin poistetaan viimeinen tyhjä kenttä
             // kenttä on aina label-elementin sisällä eli oikeasti poistetaan label ja samalla sen sisältö
             if ( viimeinen_tyhja > -1 && input.value.trim() == "") { // ei kelpuuteta pelkkiä välilyöntejä
-                let poistettava = inputs[viimeinen_tyhja].parentNode; // parentNode on label, joka sisältää inputin
+                let poistettava = inputs[viimeinen_tyhja].parentNode.parentNode; // parentNode on label, joka sisältää inputin
                 field.removeChild( poistettava );
                 viimeinen_tyhja = i;
             }
@@ -216,12 +272,13 @@ function addNew(e) {
 
         // ei ollut tyhjiä kenttiä joten lisätään yksi
         if ( viimeinen_tyhja == -1) {
+            let p = document.createElement('p');
             let label = document.createElement("label");
             label.textContent = "Jäsen";
             let input = document.createElement("input");
             input.setAttribute("type", "text");
-            input.addEventListener("input", addNew);
-            field.appendChild(label).appendChild(input);
+            input.addEventListener("input", inputHandler);
+            field.appendChild(p).appendChild(label).appendChild(input);
         }
         // jos halutaan kenttiin numerointi
         for(let i=0; i<inputs.length; i++) { // inputit näkyy ulommasta funktiosta
@@ -229,6 +286,13 @@ function addNew(e) {
                 label.firstChild.nodeValue = "Jäsen " + (i+1); // päivitetään labelin ekan lapsen eli tekstin sisältö
         }
     }
+    const buttonit = document.getElementById('joukkuelomake').querySelectorAll('button');
+    const jNimi = document.getElementById('joukkuelomake').querySelector('input');
+
+    if (inputs.length>2 && jNimi.value.trim().length > 0) { 
+    buttonit[0].disabled = false;
+    }
+    
 }
 
 
@@ -257,6 +321,32 @@ function lisaaRastilomake() {
     field.appendChild(button);
 }
 
+
+function addRasti(e) {
+    e.preventDefault();
+    const inputs = form.querySelectorAll('input');
+    let lat = inputs[0].value.trim();
+    let lon = inputs[1].value.trim();
+    let koodi = inputs[2].value.trim();
+
+    if (koodi.length === 0 || isNaN(lat) || isNaN(lon)) {
+        return;
+    }
+    let maxId = Math.max(...Object.keys(rastit));
+    let newId = maxId+1;
+    lat = lat.toString();
+    lon = lon.toString();
+    const r = {
+        id: newId,
+        koodi,
+        lat,
+        lon,
+    };
+    rastit[newId] = r;
+    data.rastit.push(r);
+    form.reset();
+    tulostaRastit();
+}
 
 
 //lisätään annettuun fieldiin kenttä jossa on annettu labelin teksti.
@@ -302,51 +392,18 @@ function tulostaRastit() {
 
 }
 
+// let muokattavaJoukkue = 'undefined';
 let rastit = luoRastit();
 let joukkueet = luoJoukkueet();
 let sarjat = luoSarjat();
 jarjestaJoukkueet();
-
-//lisätään kaikki joukkueet oikeassa järjestyksessä listaan, myös sarja ja pisteet
-let lista = document.querySelector('#tupa > table');
-const th = document.createElement('th');
-th.textContent = "Pisteet";
-lista.querySelector('tr').appendChild(th);
-for (const i of joukkueet) {
-    let tr = getTr(sarjat[i.sarja].nimi, i);
-    lista.appendChild(tr);
-}
 
 lisaaRastilomake();
 let form = document.querySelector('form');
 
 
 // tehdään rastilomakkeen toiminnot 
-form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const inputs = form.querySelectorAll('input');
-    let lat = inputs[0].value.trim();
-    let lon = inputs[1].value.trim();
-    let koodi = inputs[2].value.trim();
-
-    if (koodi.length === 0 || isNaN(lat) || isNaN(lon)) {
-        return;
-    }
-    let maxId = Math.max(...Object.keys(rastit));
-    let newId = maxId+1;
-    lat = lat.toString();
-    lon = lon.toString();
-    const r = {
-        id: newId,
-        koodi,
-        lat,
-        lon,
-    };
-    rastit[newId] = r;
-    data.rastit.push(r);
-    form.reset();
-    tulostaRastit();
-});
+form.addEventListener('submit', addRasti);
 lisaaJoukkuelomake();
 
 console.log(data);
