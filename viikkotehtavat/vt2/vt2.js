@@ -126,7 +126,10 @@ function jarjestaJoukkueet() {
     while (lista.children[2]) {      // jätetään kaksi ensimmäistä child elementiä jotka olivat valmiina alunperin
         lista.removeChild(lista.lastChild);
     }
-    lista.querySelector('tr').appendChild(th);
+    const tr = lista.querySelector('tr');
+    if (tr.childElementCount < 3) {
+        tr.appendChild(th);        
+    }
     for (const i of joukkueet) {
         let tr = getTr(sarjat[i.sarja].nimi, i);
         lista.appendChild(tr);
@@ -190,7 +193,9 @@ function lisaaJoukkuelomake() {
     field.appendChild(otsikko);
     nimiInput.parentNode.parentNode.after(field);
     const buttonit = lomake.querySelectorAll('button');
+    let ylaotsikko = lomake.querySelector('legend');
     if (muokattavaJoukkue === 'undefined') {
+        ylaotsikko.textContent = 'Uusi joukkue';
         addInput(field);
         addInput(field);
         buttonit[0].disabled = true;
@@ -202,7 +207,6 @@ function lisaaJoukkuelomake() {
     if (muokattavaJoukkue != 'undefined') {
         buttonit[0].hidden = true;
         buttonit[1].hidden = false;
-        let ylaotsikko = lomake.querySelector('legend');
         ylaotsikko.textContent = 'Tallenna muutokset';
         //joukkueen tiedot lomakkeeseen:
         nimiInput.value = muokattavaJoukkue.nimi;
@@ -221,7 +225,7 @@ function changeJoukkue(e) {
     if (muokattavaJoukkue === 'undefined') {
         return;
     }
-    muokattavaJoukkue.nimi = document.getElementById('joukkuelomake').querySelector('input').value;
+    let nimi = document.getElementById('joukkuelomake').querySelector('input').value.trim();
     let jas = [];
     const inputs = document.getElementById('jasenField').querySelectorAll('input');
     for (const input of inputs) {
@@ -230,6 +234,10 @@ function changeJoukkue(e) {
            jas.push(inp);                
        }
     }
+    if (jas.length < 2 || nimi === '') {
+        return;
+    }
+    muokattavaJoukkue.nimi = nimi;
     muokattavaJoukkue.jasenet = jas;
     // etsii joukkueen id:n avulla muokattavan joukkueen, ja
     //muokkaa joukkuetta itse tehdyssä joukkuelistassa:
@@ -363,9 +371,11 @@ function inputHandler(e) {
     nimeaKentat(inputs);
     const jNimi = form.querySelector('input');
     if (inputs.length>2 && jNimi.value.trim().length > 0) { 
-    buttons[0].disabled = false;
+        buttons[0].disabled = false;
+        buttons[1].disabled = false;
     } else {
         buttons[0].disabled = true;
+        buttons[1].disabled = true;
     }
     
 }
