@@ -165,7 +165,8 @@ function getTr(sarja, joukkue) {
     return tr;
 }
 
-
+// luo joukkuelomakkeen, muokattavaJoukkue -muuttujan arvosta riippuen joko 
+// tyhjän uusi joukkue -lomakkeen, tai sitten muokattavaJoukkue-muuttujan tiedoilla esitäytetyn muokkauslomakkeen
 // <fieldset>
 //     <legend>Uusi joukkue</legend>
 //     <p><label>Nimi <input type="text" value="" /></label></p>
@@ -214,6 +215,7 @@ function lisaaJoukkuelomake() {
 }
 
 
+// joukkueen tietoja muutettaessa tämä on eventListeneri kun painaa muokkaa joukkuetta
 function changeJoukkue(e) {
     e.preventDefault();
     if (muokattavaJoukkue === 'undefined') {
@@ -250,6 +252,7 @@ function changeJoukkue(e) {
 }
 
 
+// uutta joukkuetta lisättäessä tämä on eventlisteneri kun painaa Lisää joukkue
 function addJoukkue(e) {
     e.preventDefault();
     if (muokattavaJoukkue != 'undefined') {
@@ -297,6 +300,7 @@ function addJoukkue(e) {
 }
 
 
+// luo uuden inputin, käytetään kun luodaan joukkueen jäsenten nimille kenttiä
 function addInput(parent, jasen) {
     const p = document.createElement('p');
     const l = document.createElement('label');
@@ -316,6 +320,7 @@ function addInput(parent, jasen) {
 }
 
 
+// antaa joukkuelomakkeen inputeille nimet jäsen 1, jäsen 2 jne.
 function nimeaKentat(inputs) {
       // halutaan kenttiin numerointi
     const field = document.getElementById('jasenField');
@@ -392,6 +397,7 @@ function lisaaRastilomake() {
 }
 
 
+// eventlistener kun luodaan uusi rasti
 function addRasti(e) {
     e.preventDefault();
     const inputs = form.querySelectorAll('input');
@@ -462,6 +468,10 @@ function tulostaRastit() {
 
 }
 
+
+
+// Tässä "main"
+
 let muokattavaJoukkue = 'undefined';
 let rastit = luoRastit();
 let joukkueet = luoJoukkueet();
@@ -471,8 +481,6 @@ jarjestaJoukkueet();
 lisaaRastilomake();
 let form = document.querySelector('form');
 
-
-// tehdään rastilomakkeen toiminnot 
 form.addEventListener('submit', addRasti);
 lisaaJoukkuelomake();
 
