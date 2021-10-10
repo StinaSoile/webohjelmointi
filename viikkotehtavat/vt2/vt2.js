@@ -216,14 +216,45 @@ function lisaaJoukkuelomake() {
 
 function changeJoukkue(e) {
     e.preventDefault();
-    //tsekkaa joukkueen id:n ja muokkaa sen mukaan kys joukkuetta
+    if (muokattavaJoukkue === 'undefined') {
+        return;
+    }
+    muokattavaJoukkue.nimi = document.getElementById('joukkuelomake').querySelector('input').value;
+    let jas = [];
+    const inputs = document.getElementById('jasenField').querySelectorAll('input');
+    for (const input of inputs) {
+        let inp = input.value.trim();
+        if (inp.length > 0) {
+           jas.push(inp);                
+       }
+    }
+    muokattavaJoukkue.jasenet = jas;
+    // etsii joukkueen id:n avulla muokattavan joukkueen, ja
+    //muokkaa joukkuetta itse tehdyssä joukkuelistassa:
+    for (let joukkue of joukkueet) {      
+        if (parseInt(joukkue.id) === parseInt(muokattavaJoukkue.id)) {
+            joukkue.nimi = muokattavaJoukkue.nimi;
+            joukkue.jasenet = muokattavaJoukkue.jasenet;
+        }
+    }
+    // muokkaa joukkuetta datassa
+    for (let joukkue of data.joukkueet) {
+        if (parseInt(joukkue.id) === parseInt(muokattavaJoukkue.id)) {
+            joukkue.nimi = muokattavaJoukkue.nimi;
+            joukkue.jasenet = muokattavaJoukkue.jasenet;
+        }
+    }
     muokattavaJoukkue = 'undefined';
-    lisaaJoukkuelomake();
+    jarjestaJoukkueet();
+    lisaaJoukkuelomake(); //resettaa lomakkeen
 }
 
 
 function addJoukkue(e) {
     e.preventDefault();
+    if (muokattavaJoukkue != 'undefined') {
+        return;
+    }
     const lomake = document.getElementById('joukkuelomake');
     const inputs = lomake.querySelectorAll('input');
     const jasenet = [];
