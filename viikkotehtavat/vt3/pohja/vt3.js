@@ -47,6 +47,8 @@ function inputHandler(e) {
   console.log("toimiiko");
   const form = document.getElementById("form");
   const jasenet = document.getElementById("jasenet");
+
+  let labels = jasenet.querySelectorAll("label");
   let inputs = jasenet.querySelectorAll("input");
   const button = form.querySelector("button");
   const emptyInputs = [];
@@ -59,17 +61,23 @@ function inputHandler(e) {
   }
   // jos emptyssä on enemmän kuin 1 inputti ja yhteensä inputteja on 2 tai enemmän
   // niin poistetaan emptyistä kaikki paitsi yksi
-  //   if (emptyInputs.length > 1 && inputs.length > 2) {
-  //     for (let i = 1; i < emptyInputs.length; i++) {
-  //       emptyInputs[i].parentNode.parentNode.remove();
-  //     }
-  //   }
+  if (emptyInputs.length > 1 && inputs.length > 2) {
+    for (let i = 1; i < emptyInputs.length; i++) {
+      let id = emptyInputs[i].id;
+      for (let j = 1; j < labels.length; j++) {
+        if (labels[j].getAttribute("for") === id) {
+          labels[j].remove();
+        }
+        emptyInputs[i].remove();
+      }
+    }
+  }
   // jos emptyjä ei ole, lisätään yksi.
   if (emptyInputs.length === 0) {
     addInput(jasenet);
   }
   inputs = jasenet.querySelectorAll("input");
-  let labels = jasenet.querySelectorAll("label");
+  labels = jasenet.querySelectorAll("label");
   nimeaKentat(labels);
   const jNimi = form.querySelector("input");
   if (inputs.length > 2 && jNimi.value.trim().length > 0) {
