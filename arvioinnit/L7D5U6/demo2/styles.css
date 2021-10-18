@@ -1,0 +1,19 @@
+
+form {
+  display: flex;
+  flex-direction: column;
+  max-width: 325px;
+}
+
+fieldset label, fieldset button {
+  display: flex;
+  margin: 5px;
+}
+
+fieldset label input {
+  margin-left: 5px;
+}
+
+#joukkuelomake label {
+  flex: 1;
+}

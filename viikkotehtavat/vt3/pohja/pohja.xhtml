@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fi" xmlns="http://www.w3.org/1999/xhtml" xml:lang="fi">
+  <head>
+    <!-- head-osan sisältöä ei saa muuttaa -->
+    <script src="https://appro.mit.jyu.fi/tiea2120/vt/vt3/2021/data2021.js"></script>
+    <script async="" type="module" src="vt3.js"></script>
+    <link rel="StyleSheet" href="tyylit.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <title>VT3 - 2021 syksy</title>
+  </head>
+  <body>
+    <!-- Tämän tiedoston sisältöä saa muuttaa vapaasti tästä kommentista eteenpäin
+ Kirjoita mahdollisimman paljon valmista HTML-koodia ja luo javascriptilla dynaamisesti
+ vain tarpeelliset kuten leimaustapojen ja sarjojen valinta sekä joukkuelistaus
+  -->
+    <h1>Tulospalvelu</h1>
+
+    <form class="form" action="#" method="post" id="form">
+      <fieldset id="joukkue">
+        <legend>Joukkueen tiedot</legend>
+        <label for="nimi">Nimi: </label>
+        <input type="text" name="nimi" id="nimi" required="required" />
+        <p>Sarja:</p>
+        <div class="radio">
+          <label
+            >En kerro
+            <input type="radio" name="sarja" value="-" checked="checked" />
+          </label>
+          <label
+            >Kissa
+            <input type="radio" name="sarja" value="M" />
+          </label>
+          <label
+            >Koira
+            <input type="radio" name="sarja" value="N" />
+          </label>
+        </div>
+      </fieldset>
+      <fieldset id="jasenet">
+        <legend>Jäsenet</legend>
+        <!-- <label for="jasenx">Jäsen x: </label>
+        <input type="text" name="nimi" id="jasenx" required="required" />
+        <label for="jaseny">Jäsen xkdr: </label>
+        <input type="text" name="nimi" id="jaseny" required="required" /> -->
+      </fieldset>
+      <button type="submit">Tallenna</button>
+    </form>
+
+    <!-- Tästä eteenpäin sivun sisältöä ei saa muuttaa -->
+    <!-- Sivun validoinnin voit tehdä milloin tahansa näppäinyhdistelmällä CTRL+ALT+V -->
+    <script src="https://appro.mit.jyu.fi/tools/htmlinspector/html-inspector.js"></script>
+    <script src="https://appro.mit.jyu.fi/tools/validator/validator.user.js"></script>
+    <script src="https://appro.mit.jyu.fi/tools/jshint/jshint.js"></script>
+    <script src="https://appro.mit.jyu.fi/tools/jshint/jshint.user.js"></script>
+    <script>
+      //<![CDATA[
+      // seurataan DOM-puuhun tehtyjä muutoksia. Validoidaan dokumentti, jos DOM-puuta
+      // muutetaan. Tämä hidastaa merkittävästi sovellusta, mutta auttaa bongaamaan
+      // epävalidit muutokset sivun rakenteeseen
+      // kts. https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+      function observe() {
+        // asetukset
+        const config = { attributes: true, childList: true, subtree: true };
+        // ajastuksen apumuuttuja
+        let timer = true;
+
+        // seuraava funktio suoritetaan, jos dokumentin sisältö muuttuu
+        function validointi() {
+          HTMLInspector.inspect({
+            domRoot: "html",
+            useRules: null,
+            excludeRules: ["script-placement", "unnecessary-elements"],
+            excludeElements: "svg",
+            excludeSubTrees: ["svg", "iframe"],
+            onComplete: function (errors) {
+              errors.forEach(function (error) {
+                console.warn(error.message, error.context);
+              });
+            },
+          });
+
+          timer = true;
+        }
+
+        // muutosten seuranta
+        const callback = function (mutationsList, observer) {
+          for (let mutation of mutationsList) {
+            if (
+              timer &&
+              (mutation.type === "childList" || mutation.type === "attributes")
+            ) {
+              // emme halua suorittaa validointia jokaisen pienen muutoksen
+              // jälkeen joten ajetaan validointia viivästettynä, jotta mahdollisia
+              // muutoksia ehtii tulla enemmän kerralla
+              window.setTimeout(validointi, 500);
+              timer = false;
+              //	            console.log(mutation);
+            }
+          }
+        };
+
+        // luodaan varsinainen tapahtumankuuntelija
+        const observer = new MutationObserver(callback);
+
+        // aktivoidaan kuuntelija dokumentin body-elementille
+        observer.observe(document.body, config);
+      }
+      window.addEventListener("load", observe);
+      //]]>
+    </script>
+  </body>
+</html>

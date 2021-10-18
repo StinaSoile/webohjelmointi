@@ -1,0 +1,44 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+h1 {
+  margin: 0.5em;
+}
+
+fieldset {
+  display: grid;
+  /* grid-template-rows: repeat(auto-fill, auto); */
+  grid-template-columns: 60% 40%;
+  max-width: 40em;
+  margin: 2%;
+  padding: 3%;
+}
+
+.form label {
+  display: block;
+}
+
+.form label,
+.form input[type="text"],
+.form p {
+  /* margin-top: 1%; */
+  margin-bottom: 2em;
+}
+.form input[type="radio"],
+.radio > label {
+  margin-bottom: 0;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.radio {
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  width: 5em;
+  height: auto;
+  margin: 0em 2%;
+}
