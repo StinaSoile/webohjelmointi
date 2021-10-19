@@ -4,19 +4,15 @@ let inputId = 0;
 function luoLomake() {
   const jNimi = document.getElementById("nimi");
   jNimi.value = "";
-  jNimi.addEventListener("input", inputHandler);
+  jNimi.addEventListener("input", inputHandler1);
   addSarjat();
-  //           <label>
-  //             En kerro
-  //             <input type="radio" name="sarja" value="-" checked="checked" />
-  //           </label>;
 
   const jasenet = document.getElementById("jasenet");
   removeJasenet();
   addInput(jasenet);
   addInput(jasenet);
-  const button = document.querySelector("button");
-  button.disabled = true;
+  // const button = document.querySelector("button");
+  // button.disabled = true;
   const form = document.getElementById("form");
   form.addEventListener("submit", submitHandler);
 }
@@ -36,7 +32,7 @@ function addSarjat() {
     l.textContent = sarja.nimi;
     inp.setAttribute("type", "radio");
     inp.setAttribute("name", "sarja");
-    inp.setAttribute("value", sarja.id);
+    inp.setAttribute("value", sarja);
     radio.appendChild(l);
     l.appendChild(inp);
   }
@@ -69,7 +65,7 @@ function addInput(parent) {
   inp.setAttribute("name", "nimi");
   inp.setAttribute("id", "jasen" + inputId);
   inp.value = "";
-  inp.addEventListener("input", inputHandler);
+  inp.addEventListener("input", inputHandler2);
   parent.appendChild(l);
   parent.appendChild(inp);
   let labels = parent.querySelectorAll("label");
@@ -88,17 +84,53 @@ function nimeaKentat(labels) {
   }
 }
 
+function inputHandler1(e) {
+  let nimi = e.target;
+  nimi.setCustomValidity("");
+  let nimet = [];
+  for (const joukkue of data.joukkueet) {
+    nimet.push(joukkue.nimi.trim().toLowerCase());
+  }
+  if (nimet.includes(nimi.value.trim().toLowerCase())) {
+    nimi.setCustomValidity("Tämän niminen joukkue on jo olemassa");
+  }
+
+  inputHandler();
+}
+
+function inputHandler2(e) {
+  let nimi = e.target;
+  nimi.setCustomValidity("");
+  const inputs = document.getElementById("jasenet").querySelectorAll("input");
+  const tekstit = [];
+  for (const input of inputs) {
+    let inp = input.value.trim().toLowerCase();
+    if (inp !== "") {
+      tekstit.push(inp);
+    }
+  }
+
+  if (checkDuplicates(tekstit)) {
+    nimi.setCustomValidity(
+      "Joukkueessa ei saa olla useampaa samannimistä henkilöä"
+    );
+  }
+
+  inputHandler();
+}
+
+function checkDuplicates(array) {
+  return new Set(array).size !== array.length;
+}
+
 // Lisätään uusi tyhjä input aina kun edellisissä on tekstiä, poistetaan ylimääräiset tyhjät inputit.
-// Tässä on kopioitu ja muokattu kurssin sivuilta löytyvää mallia:
-// https://appro.mit.jyu.fi/tiea2120/luennot/forms/ ensimmäinen esimerkki, Dynaaminen lomake
-function inputHandler(e) {
-  console.log("toimiiko");
+function inputHandler() {
   const form = document.getElementById("form");
   const jasenet = document.getElementById("jasenet");
 
   let labels = jasenet.querySelectorAll("label");
   let inputs = jasenet.querySelectorAll("input");
-  const button = form.querySelector("button");
+  // const button = form.querySelector("button");
   const emptyInputs = [];
 
   // lisätään empty inputtiin kaikki tyhjät
@@ -127,18 +159,31 @@ function inputHandler(e) {
   inputs = jasenet.querySelectorAll("input");
   labels = jasenet.querySelectorAll("label");
   nimeaKentat(labels);
-  const jNimi = form.querySelector("input");
-  if (inputs.length > 2 && jNimi.value.trim().length > 0) {
-    button.disabled = false;
-  } else {
-    button.disabled = true;
-  }
+  // const jNimi = form.querySelector("input");
+  // if (inputs.length > 2 && jNimi.value.trim().length > 0) {
+  //   button.disabled = false;
+  // } else {
+  //   button.disabled = true;
+  // }
 }
 
 function submitHandler(e) {
   e.preventDefault();
-  console.log("gds");
-  const form = document.getElementById("form");
+  console.log("submit happened");
+
+  const jNimi = document.getElementById("nimi");
+  jNimi.reportValidity();
+
+  const inputit = document.getElementById("jasenet").querySelectorAll("input");
+  if (inputit.length < 3) {
+    inputit[0].setCustomValidity(
+      "Joukkueella on oltava vähintään kaksi jäsentä"
+    );
+  }
+  for (const input of inputit) {
+    input.reportValidity();
+  }
+
   luoLomake();
 }
 
