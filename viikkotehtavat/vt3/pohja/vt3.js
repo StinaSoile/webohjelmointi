@@ -18,7 +18,6 @@ function luoLomake() {
 }
 
 function addSarjat() {
-  const sarjat = data.sarjat;
   let radio = document.getElementById("radio");
   if (radio.firstChild) {
     let labels = radio.querySelectorAll("label");
@@ -26,15 +25,21 @@ function addSarjat() {
       label.remove();
     }
   }
-  for (const sarja of sarjat) {
+  let list = [];
+  for (const sarja of data.sarjat) {
     const l = document.createElement("label");
     const inp = document.createElement("input");
     l.textContent = sarja.nimi;
     inp.setAttribute("type", "radio");
     inp.setAttribute("name", "sarja");
     inp.setAttribute("value", sarja);
-    radio.appendChild(l);
+    // radio.appendChild(l);
     l.appendChild(inp);
+    list.push(l);
+  }
+  list.sort((a, b) => a.textContent > b.textContent);
+  for (let i = 0; i < list.length; i++) {
+    radio.appendChild(list[i]);
   }
   const inp = radio.querySelector("input");
   inp.setAttribute("checked", "checked");
@@ -84,6 +89,7 @@ function nimeaKentat(labels) {
   }
 }
 
+// inputhandleri joukkueen nimelle
 function inputHandler1(e) {
   let nimi = e.target;
   nimi.setCustomValidity("");
@@ -94,51 +100,72 @@ function inputHandler1(e) {
   if (nimet.includes(nimi.value.trim().toLowerCase())) {
     nimi.setCustomValidity("Tämän niminen joukkue on jo olemassa");
   }
-
-  inputHandler();
-}
-
-function inputHandler2(e) {
-  let nimi = e.target;
-  nimi.setCustomValidity("");
-  const inputs = document.getElementById("jasenet").querySelectorAll("input");
-  const tekstit = [];
-  for (const input of inputs) {
-    let inp = input.value.trim().toLowerCase();
-    if (inp !== "") {
-      tekstit.push(inp);
-    }
-  }
-
-  if (checkDuplicates(tekstit)) {
-    nimi.setCustomValidity(
-      "Joukkueessa ei saa olla useampaa samannimistä henkilöä"
-    );
-  }
-
-  inputHandler();
 }
 
 function checkDuplicates(array) {
   return new Set(array).size !== array.length;
 }
 
+// inputhandleri jäsenten nimille
 // Lisätään uusi tyhjä input aina kun edellisissä on tekstiä, poistetaan ylimääräiset tyhjät inputit.
-function inputHandler() {
-  const form = document.getElementById("form");
+function inputHandler2(e) {
+  // const form = document.getElementById("form");
+  let nimi = e.target;
+  nimi.setCustomValidity("");
+
   const jasenet = document.getElementById("jasenet");
 
   let labels = jasenet.querySelectorAll("label");
   let inputs = jasenet.querySelectorAll("input");
   // const button = form.querySelector("button");
+
+  for (const input of inputs) {
+    input.setCustomValidity("");
+  }
+
+  const tekstit = [];
   const emptyInputs = [];
 
   // lisätään empty inputtiin kaikki tyhjät
+  // ja tekstit -arrayhin kaikki jotka ei oo tyhjiä
   for (const input of inputs) {
+    let inp = input.value.trim().toLowerCase();
+    if (inp !== "") {
+      tekstit.push(inp);
+    }
     if (input.value.trim() === "") {
       emptyInputs.push(input);
     }
   }
+  inputs[0].setCustomValidity("");
+  inputs[1].setCustomValidity("");
+  if (tekstit.length < 2) {
+    if (inputs[0].value.trim() === "") {
+      inputs[0].setCustomValidity(
+        "Joukkueella on oltava vähintään kaksi jäsentä"
+      );
+    }
+    if (inputs[1].value.trim() === "") {
+      inputs[1].setCustomValidity(
+        "Joukkueella on oltava vähintään kaksi jäsentä"
+      );
+    }
+  }
+
+  for (let i = 0; i < inputs.length; i++) {
+    for (let j = 0; j < inputs.length; j++) {
+      if (
+        inputs[i].value.trim().toLowerCase() ===
+          inputs[j].value.trim().toLowerCase() &&
+        inputs[i] !== inputs[j]
+      ) {
+        inputs[j].setCustomValidity(
+          "Joukkueessa ei saa olla samannimisiä henkilöitä"
+        );
+      }
+    }
+  }
+
   // jos emptyssä on enemmän kuin 1 inputti ja yhteensä inputteja on 2 tai enemmän
   // niin poistetaan emptyistä kaikki paitsi yksi
   if (emptyInputs.length > 1 && inputs.length > 2) {
@@ -174,15 +201,9 @@ function submitHandler(e) {
   const jNimi = document.getElementById("nimi");
   jNimi.reportValidity();
 
-  const inputit = document.getElementById("jasenet").querySelectorAll("input");
-  if (inputit.length < 3) {
-    inputit[0].setCustomValidity(
-      "Joukkueella on oltava vähintään kaksi jäsentä"
-    );
-  }
-  for (const input of inputit) {
-    input.reportValidity();
-  }
+  // for (const input of inputit) {
+  //   input.reportValidity();
+  // }
 
   luoLomake();
 }
