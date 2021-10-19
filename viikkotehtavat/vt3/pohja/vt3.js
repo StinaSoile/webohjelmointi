@@ -2,9 +2,57 @@
 //@ts-check
 let inputId = 0;
 function luoLomake() {
+  const jNimi = document.getElementById("nimi");
+  jNimi.value = "";
+  jNimi.addEventListener("input", inputHandler);
+  addSarjat();
+  //           <label>
+  //             En kerro
+  //             <input type="radio" name="sarja" value="-" checked="checked" />
+  //           </label>;
+
   const jasenet = document.getElementById("jasenet");
+  removeJasenet();
   addInput(jasenet);
   addInput(jasenet);
+  const button = document.querySelector("button");
+  button.disabled = true;
+  const form = document.getElementById("form");
+  form.addEventListener("submit", submitHandler);
+}
+
+function addSarjat() {
+  const sarjat = data.sarjat;
+  let radio = document.getElementById("radio");
+  if (radio.firstChild) {
+    let labels = radio.querySelectorAll("label");
+    for (let label of labels) {
+      label.remove();
+    }
+  }
+  for (const sarja of sarjat) {
+    const l = document.createElement("label");
+    const inp = document.createElement("input");
+    l.textContent = sarja.nimi;
+    inp.setAttribute("type", "radio");
+    inp.setAttribute("name", "sarja");
+    inp.setAttribute("value", sarja.id);
+    radio.appendChild(l);
+    l.appendChild(inp);
+  }
+  const inp = radio.querySelector("input");
+  inp.setAttribute("checked", "checked");
+}
+
+function removeJasenet() {
+  let next = document
+    .getElementById("jasenet")
+    .querySelector("legend").nextElementSibling;
+  if (next) {
+    next.remove();
+    removeJasenet();
+  }
+  return;
 }
 
 // luo uuden inputin, käytetään kun luodaan joukkueen jäsenten nimille kenttiä
@@ -85,6 +133,13 @@ function inputHandler(e) {
   } else {
     button.disabled = true;
   }
+}
+
+function submitHandler(e) {
+  e.preventDefault();
+  console.log("gds");
+  const form = document.getElementById("form");
+  luoLomake();
 }
 
 luoLomake();
