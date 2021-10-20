@@ -14,16 +14,17 @@
  Kirjoita mahdollisimman paljon valmista HTML-koodia ja luo javascriptilla dynaamisesti
  vain tarpeelliset kuten leimaustapojen ja sarjojen valinta sekä joukkuelistaus
   -->
-    <h1>Tulospalvelu</h1>
+    <div id="container">
+      <h1>Tulospalvelu</h1>
 
-    <form class="form" action="#" method="post" id="form">
-      <fieldset id="joukkue">
-        <legend>Joukkueen tiedot</legend>
-        <label for="nimi">Nimi: </label>
-        <input type="text" name="nimi" id="nimi" required="required" />
-        <p>Sarja:</p>
-        <div class="radio" id="radio">
-          <!-- <label
+      <form class="form" action="#" method="post" id="form">
+        <fieldset id="joukkue">
+          <legend>Joukkueen tiedot</legend>
+          <label for="nimi">Nimi: </label>
+          <input type="text" name="nimi" id="nimi" required="required" />
+          <p>Sarja:</p>
+          <div class="radio" id="radio">
+            <!-- <label
             >En kerro
             <input type="radio" name="sarja" value="-" checked="checked" />
           </label>
@@ -35,17 +36,31 @@
             >Koira
             <input type="radio" name="sarja" value="N" />
           </label> -->
-        </div>
-      </fieldset>
-      <fieldset id="jasenet">
-        <legend>Jäsenet</legend>
-        <!-- <label for="jasenx">Jäsen x: </label>
+          </div>
+        </fieldset>
+        <fieldset id="jasenet">
+          <legend>Jäsenet</legend>
+          <!-- <label for="jasenx">Jäsen x: </label>
         <input type="text" name="nimi" id="jasenx" required="required" />
         <label for="jaseny">Jäsen xkdr: </label>
         <input type="text" name="nimi" id="jaseny" required="required" /> -->
-      </fieldset>
-      <button type="submit">Tallenna</button>
-    </form>
+        </fieldset>
+        <button type="submit">Tallenna</button>
+      </form>
+      <div id="joukkueet">
+        <h2>Joukkueet</h2>
+        <ul id="joukkuelista">
+          <!-- <li>
+            Joukkue A <strong>8h</strong>
+            <ul>
+              <li>Jäsen A</li>
+              <li>Jäsen B</li>
+              <li>Jäsen c</li>
+            </ul>
+          </li> -->
+        </ul>
+      </div>
+    </div>
 
     <!-- Tästä eteenpäin sivun sisältöä ei saa muuttaa -->
     <!-- Sivun validoinnin voit tehdä milloin tahansa näppäinyhdistelmällä CTRL+ALT+V -->

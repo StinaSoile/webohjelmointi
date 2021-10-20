@@ -222,12 +222,12 @@ function luoUusiJoukkue() {
       sarjaId = input.value;
     }
   }
-  let sarja;
-  for (const s of data.sarjat) {
-    if (parseInt(s.id) === parseInt(sarjaId)) {
-      sarja = s;
-    }
-  }
+  // let sarja = etsiSarja(sarjaId);
+  // for (const s of data.sarjat) {
+  //   if (parseInt(s.id) === parseInt(sarjaId)) {
+  //     sarja = s;
+  //   }
+  // }
 
   const iideet = [];
   for (const joukkue of data.joukkueet) {
@@ -241,7 +241,7 @@ function luoUusiJoukkue() {
     jasenet: jasenet,
     rastit: [],
     leimaustapa: [0],
-    sarja: sarja,
+    sarja: sarjaId,
     id: newId,
   };
 
@@ -249,12 +249,90 @@ function luoUusiJoukkue() {
   console.log(newJoukkue);
 }
 
+function etsiSarja(sarjaId) {
+  let sarja;
+  for (const s of data.sarjat) {
+    if (parseInt(s.id) === parseInt(sarjaId)) {
+      sarja = s;
+    }
+  }
+  return sarja;
+}
+
+function luoJoukkueLista() {
+  // jos on olemassa vanha lista, tuhotaan se ja luodaan uusi tyhjä
+  const div = document.getElementById("joukkueet");
+  let lista = document.getElementById("joukkuelista");
+  if (lista !== "undefined") {
+    lista.remove();
+  }
+  lista = document.createElement("ul");
+  lista.setAttribute("id", "joukkuelista");
+  div.appendChild(lista);
+
+  // lisätään joukkueet listaan, sortataan se
+  // ja lisätään joukkueet jäsenineen yksitellen tulostaJoukkue-funktion avulla
+  let joukkuelista = [];
+  for (const joukkue of data.joukkueet) {
+    joukkuelista.push(joukkue);
+  }
+  joukkuelista.sort(
+    (a, b) => a.nimi.trim().toLowerCase() > b.nimi.trim().toLowerCase()
+  );
+
+  for (let i = 0; i < joukkuelista.length; i++) {
+    tulostaJoukkue(joukkuelista[i]);
+  }
+}
+
+// lisätään yksi annettu joukkue listaan, alla olevassa muodossa
+/* <ul id="joukkuelista">
+  <li>
+    Joukkue A <strong>8h</strong>
+    <ul>
+      <li>Jäsen A</li>
+      <li>Jäsen B</li>
+      <li>Jäsen c</li>
+    </ul>
+  </li>
+</ul>; */
+function tulostaJoukkue(joukkue) {
+  const lista = document.getElementById("joukkuelista");
+
+  const li = document.createElement("li");
+  const txt = document.createTextNode(joukkue.nimi.trim());
+
+  let sarja = etsiSarja(joukkue.sarja);
+  const strong = document.createElement("strong");
+  strong.textContent = " " + sarja.nimi.trim();
+
+  let ul = document.createElement("ul");
+  let jasenet = [];
+  for (const nimi of joukkue.jasenet) {
+    jasenet.push(nimi.trim());
+  }
+  jasenet.sort((a, b) => a.trim().toLowerCase() > b.trim().toLowerCase());
+
+  for (let i = 0; i < jasenet.length; i++) {
+    const li2 = document.createElement("li");
+    li2.textContent = jasenet[i];
+    ul.appendChild(li2);
+  }
+
+  li.appendChild(txt);
+  li.appendChild(strong);
+  li.appendChild(ul);
+  lista.appendChild(li);
+}
+
 function submitHandler(e) {
   e.preventDefault();
   luoUusiJoukkue();
   luoLomake();
+  luoJoukkueLista();
 }
 
 luoLomake();
+luoJoukkueLista();
 
 console.log(data);

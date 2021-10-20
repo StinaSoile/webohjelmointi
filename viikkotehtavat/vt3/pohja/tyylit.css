@@ -6,12 +6,18 @@ h1 {
   margin: 0.5em;
 }
 
+#container {
+  display: flexbox;
+  flex-direction: column;
+  margin: 1em;
+}
+
 fieldset {
   display: grid;
   /* grid-template-rows: repeat(auto-fill, auto); */
   grid-template-columns: 60% 40%;
   max-width: 40em;
-  margin: 2%;
+  margin-top: 2%;
   padding: 3%;
 }
 
@@ -41,4 +47,19 @@ button {
   width: 5em;
   height: auto;
   margin: 0em 2%;
+}
+
+#joukkueet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2em;
+}
+
+#joukkuelista {
+  margin-top: 2em;
+}
+
+#joukkuelista > li > ul > li {
+  margin-left: 3em;
 }
