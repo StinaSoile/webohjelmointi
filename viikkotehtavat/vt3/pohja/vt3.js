@@ -5,6 +5,7 @@ function luoLomake() {
   const jNimi = document.getElementById("nimi");
   jNimi.value = "";
   jNimi.addEventListener("input", inputHandler1);
+  jNimi.addEventListener("input", inputHandler);
   addSarjat();
 
   const jasenet = document.getElementById("jasenet");
@@ -70,7 +71,8 @@ function addInput(parent) {
   inp.setAttribute("name", "nimi");
   inp.setAttribute("id", "jasen" + inputId);
   inp.value = "";
-  inp.addEventListener("input", inputHandler2);
+  // inp.addEventListener("input", inputHandler2);
+  inp.addEventListener("input", inputHandler);
   parent.appendChild(l);
   parent.appendChild(inp);
   let labels = parent.querySelectorAll("label");
@@ -106,52 +108,43 @@ function checkDuplicates(array) {
   return new Set(array).size !== array.length;
 }
 
-// inputhandleri jäsenten nimille
+// input handler jäsenien nimille sekä tyhjien inputtien kontrollointi
+// tsekataan onko jäseniä alle kaksi tai samannimisiä jäseniä
 // Lisätään uusi tyhjä input aina kun edellisissä on tekstiä, poistetaan ylimääräiset tyhjät inputit.
-function inputHandler2(e) {
-  // const form = document.getElementById("form");
-  let nimi = e.target;
-  nimi.setCustomValidity("");
-
+function inputHandler() {
   const jasenet = document.getElementById("jasenet");
 
   let labels = jasenet.querySelectorAll("label");
   let inputs = jasenet.querySelectorAll("input");
-  // const button = form.querySelector("button");
 
   for (const input of inputs) {
     input.setCustomValidity("");
   }
-
-  const tekstit = [];
   const emptyInputs = [];
+  const tekstit = [];
 
-  // lisätään empty inputtiin kaikki tyhjät
-  // ja tekstit -arrayhin kaikki jotka ei oo tyhjiä
+  // validointi:
+  // onko jäseniä alle 2
   for (const input of inputs) {
     let inp = input.value.trim().toLowerCase();
     if (inp !== "") {
       tekstit.push(inp);
     }
-    if (input.value.trim() === "") {
-      emptyInputs.push(input);
-    }
-  }
-  inputs[0].setCustomValidity("");
-  inputs[1].setCustomValidity("");
-  if (tekstit.length < 2) {
-    if (inputs[0].value.trim() === "") {
-      inputs[0].setCustomValidity(
-        "Joukkueella on oltava vähintään kaksi jäsentä"
-      );
-    }
-    if (inputs[1].value.trim() === "") {
-      inputs[1].setCustomValidity(
-        "Joukkueella on oltava vähintään kaksi jäsentä"
-      );
+    if (tekstit.length < 2) {
+      if (inputs[0].value.trim() === "") {
+        inputs[0].setCustomValidity(
+          "Joukkueella on oltava vähintään kaksi jäsentä"
+        );
+      }
+      if (inputs[1].value.trim() === "") {
+        inputs[1].setCustomValidity(
+          "Joukkueella on oltava vähintään kaksi jäsentä"
+        );
+      }
     }
   }
 
+  // onko samannimisiä henkilöitä
   for (let i = 0; i < inputs.length; i++) {
     for (let j = 0; j < inputs.length; j++) {
       if (
@@ -160,9 +153,18 @@ function inputHandler2(e) {
         inputs[i] !== inputs[j]
       ) {
         inputs[j].setCustomValidity(
-          "Joukkueessa ei saa olla samannimisiä henkilöitä"
+          "Joukkueessa ei saa olla samannimisiä jäseniä"
         );
       }
+    }
+  }
+
+  // tyhjien inputtien lisäys ja poisto:
+
+  // lisätään empty inputtiin kaikki tyhjät
+  for (const input of inputs) {
+    if (input.value.trim() === "") {
+      emptyInputs.push(input);
     }
   }
 
@@ -197,14 +199,6 @@ function inputHandler2(e) {
 function submitHandler(e) {
   e.preventDefault();
   console.log("submit happened");
-
-  const jNimi = document.getElementById("nimi");
-  jNimi.reportValidity();
-
-  // for (const input of inputit) {
-  //   input.reportValidity();
-  // }
-
   luoLomake();
 }
 
