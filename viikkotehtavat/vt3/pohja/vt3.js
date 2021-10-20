@@ -6,6 +6,7 @@ function luoLomake() {
   jNimi.value = "";
   jNimi.addEventListener("input", inputHandler1);
   jNimi.addEventListener("input", inputHandler);
+  addLeimat();
   addSarjat();
 
   const jasenet = document.getElementById("jasenet");
@@ -16,6 +17,40 @@ function luoLomake() {
   // button.disabled = true;
   const form = document.getElementById("form");
   form.addEventListener("submit", submitHandler);
+}
+
+// listätään datasta haetut sarjat lomakkeeseen checkboksiin alla olevassa muodossa
+// <label>
+//   En kerro
+//   <input type="checkbox" name="leima" value="-" checked="checked" />
+// </label>;
+function addLeimat() {
+  let leimat = document.getElementById("leimat");
+  if (leimat.firstChild) {
+    let labels = leimat.querySelectorAll("label");
+    for (let label of labels) {
+      label.remove();
+    }
+  }
+
+  let list = [];
+  for (const leima of data.leimaustapa) {
+    const l = document.createElement("label");
+    const inp = document.createElement("input");
+    l.textContent = leima;
+    inp.setAttribute("type", "checkbox");
+    inp.setAttribute("name", "leima");
+    inp.setAttribute("value", leima);
+    // radio.appendChild(l);
+    l.appendChild(inp);
+    list.push(l);
+  }
+  list.sort((a, b) => a > b);
+  for (let i = 0; i < list.length; i++) {
+    leimat.appendChild(list[i]);
+  }
+  // const inp = leimat.querySelector("input");
+  // inp.setAttribute("checked", "checked");
 }
 
 function addSarjat() {
@@ -122,32 +157,13 @@ function inputHandler() {
   let labels = jasenet.querySelectorAll("label");
   let inputs = jasenet.querySelectorAll("input");
 
-  for (const input of inputs) {
-    input.setCustomValidity("");
+  for (let i = 0; i < inputs.length; i++) {
+    inputs[i].setCustomValidity("");
   }
   const emptyInputs = [];
   const tekstit = [];
 
   // validointi:
-  // onko jäseniä alle 2
-  for (const input of inputs) {
-    let inp = input.value.trim().toLowerCase();
-    if (inp !== "") {
-      tekstit.push(inp);
-    }
-    if (tekstit.length < 2) {
-      if (inputs[0].value.trim() === "") {
-        inputs[0].setCustomValidity(
-          "Joukkueella on oltava vähintään kaksi jäsentä"
-        );
-      }
-      if (inputs[1].value.trim() === "") {
-        inputs[1].setCustomValidity(
-          "Joukkueella on oltava vähintään kaksi jäsentä"
-        );
-      }
-    }
-  }
 
   // onko samannimisiä henkilöitä
   for (let i = 0; i < inputs.length; i++) {
@@ -163,6 +179,27 @@ function inputHandler() {
       }
     }
   }
+
+  // onko jäseniä alle 2
+
+  // for (const input of inputs) {
+  //   let inp = input.value.trim().toLowerCase();
+  //   if (inp !== "") {
+  //     tekstit.push(inp);
+  //   }
+  if (inputs.length < 3) {
+    if (inputs[0].value.trim() === "") {
+      inputs[0].setCustomValidity(
+        "Joukkueella on oltava vähintään kaksi jäsentä"
+      );
+    }
+    if (inputs[1].value.trim() === "") {
+      inputs[1].setCustomValidity(
+        "Joukkueella on oltava vähintään kaksi jäsentä"
+      );
+    }
+  }
+  // }
 
   // tyhjien inputtien lisäys ja poisto:
 
@@ -183,6 +220,7 @@ function inputHandler() {
           labels[j].remove();
         }
         emptyInputs[i].remove();
+        inputHandler();
       }
     }
   }

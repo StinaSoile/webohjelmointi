@@ -32,15 +32,23 @@ fieldset {
   margin-bottom: 2em;
 }
 .form input[type="radio"],
-.radio > label {
+.radio > label,
+.form input[type="checkbox"],
+.leimat > label {
   margin-bottom: 0;
   margin-left: auto;
   margin-right: 0;
 }
+.form input[type="radio"],
+.form input[type="checkbox"] {
+  margin-left: 1em;
+}
 
-.radio {
+.radio,
+.leimat {
   display: flex;
   flex-direction: column;
+  margin-top: 1em;
 }
 
 button {
@@ -50,14 +58,19 @@ button {
 }
 
 #joukkueet {
-  display: flex;
+  /* display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: center; */
+  margin-left: 4em;
   margin-top: 2em;
 }
 
 #joukkuelista {
   margin-top: 2em;
+}
+
+#joukkuelista > li {
+  margin-top: 1em;
 }
 
 #joukkuelista > li > ul > li {
