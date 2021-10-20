@@ -33,7 +33,7 @@ function addSarjat() {
     l.textContent = sarja.nimi;
     inp.setAttribute("type", "radio");
     inp.setAttribute("name", "sarja");
-    inp.setAttribute("value", sarja);
+    inp.setAttribute("value", sarja.id);
     // radio.appendChild(l);
     l.appendChild(inp);
     list.push(l);
@@ -201,9 +201,57 @@ function inputHandler() {
   // }
 }
 
+// uutta joukkuetta lisättäessä tämä on eventlisteneri kun painaa Lisää joukkue
+function luoUusiJoukkue() {
+  const nimi = document.getElementById("nimi");
+  const radiot = document.getElementById("radio").querySelectorAll("input");
+  const jasenInputs = document
+    .getElementById("jasenet")
+    .querySelectorAll("input");
+
+  const jasenet = [];
+  for (const input of jasenInputs) {
+    if (input.value.trim().length > 0) {
+      jasenet.push(input.value.trim());
+    }
+  }
+
+  let sarjaId;
+  for (const input of radiot) {
+    if (input.checked) {
+      sarjaId = input.value;
+    }
+  }
+  let sarja;
+  for (const s of data.sarjat) {
+    if (parseInt(s.id) === parseInt(sarjaId)) {
+      sarja = s;
+    }
+  }
+
+  const iideet = [];
+  for (const joukkue of data.joukkueet) {
+    iideet.push(joukkue.id);
+  }
+  let maxId = Math.max(...iideet);
+  let newId = maxId + 1;
+
+  const newJoukkue = {
+    nimi: nimi.value.trim(),
+    jasenet: jasenet,
+    rastit: [],
+    leimaustapa: [0],
+    sarja: sarja,
+    id: newId,
+  };
+
+  data.joukkueet.push(newJoukkue);
+  console.log(newJoukkue);
+}
+
 function submitHandler(e) {
   e.preventDefault();
-  console.log("submit happened");
+  luoUusiJoukkue();
   luoLomake();
 }
 
