@@ -96,16 +96,21 @@ function inputHandler1(e) {
   let nimi = e.target;
   nimi.setCustomValidity("");
   let nimet = [];
+
+  // onko jo olemassa samannimisiä joukkueita
   for (const joukkue of data.joukkueet) {
     nimet.push(joukkue.nimi.trim().toLowerCase());
   }
   if (nimet.includes(nimi.value.trim().toLowerCase())) {
     nimi.setCustomValidity("Tämän niminen joukkue on jo olemassa");
   }
-}
 
-function checkDuplicates(array) {
-  return new Set(array).size !== array.length;
+  // onko joukkueen nimessä vähintään kaksi merkkiä
+  if (nimi.value.trim().length < 2) {
+    nimi.setCustomValidity(
+      "Joukkueen nimessä on oltava vähintään kaksi merkkiä"
+    );
+  }
 }
 
 // input handler jäsenien nimille sekä tyhjien inputtien kontrollointi
