@@ -4,7 +4,7 @@ let inputId = 0;
 function luoLomake() {
   const jNimi = document.getElementById("nimi");
   jNimi.value = "";
-  jNimi.addEventListener("input", inputHandler1);
+  jNimi.addEventListener("input", inputHandlerNimi);
   jNimi.addEventListener("input", inputHandler);
   addLeimat();
   addSarjat();
@@ -40,7 +40,7 @@ function addLeimat() {
     l.textContent = leima;
     inp.setAttribute("type", "checkbox");
     inp.setAttribute("name", "leima");
-    inp.setAttribute("value", leima);
+    inp.setAttribute("value", data.leimaustapa.indexOf(leima));
     // radio.appendChild(l);
     l.appendChild(inp);
     list.push(l);
@@ -49,8 +49,10 @@ function addLeimat() {
   for (let i = 0; i < list.length; i++) {
     leimat.appendChild(list[i]);
   }
-  // const inp = leimat.querySelector("input");
-  // inp.setAttribute("checked", "checked");
+  leimat.addEventListener("input", inputHandlerLeimat);
+  leimat
+    .querySelector("input")
+    .setCustomValidity("Joukkueella täytyy olla ainakin yksi leimaustapa");
 }
 
 function addSarjat() {
@@ -106,7 +108,6 @@ function addInput(parent) {
   inp.setAttribute("name", "nimi");
   inp.setAttribute("id", "jasen" + inputId);
   inp.value = "";
-  // inp.addEventListener("input", inputHandler2);
   inp.addEventListener("input", inputHandler);
   parent.appendChild(l);
   parent.appendChild(inp);
@@ -126,8 +127,25 @@ function nimeaKentat(labels) {
   }
 }
 
+// inputhandleri leimaustavan valinnalle
+function inputHandlerLeimat(e) {
+  const leimat = document.getElementById("leimat").querySelectorAll("input");
+  let valitut = [];
+  for (const leima of leimat) {
+    leima.setCustomValidity("");
+    if (leima.checked) {
+      valitut.push(leima);
+    }
+  }
+  if (valitut.length === 0) {
+    e.target.setCustomValidity(
+      "Joukkueella täytyy olla ainakin yksi leimaustapa"
+    );
+  }
+}
+
 // inputhandleri joukkueen nimelle
-function inputHandler1(e) {
+function inputHandlerNimi(e) {
   let nimi = e.target;
   nimi.setCustomValidity("");
   let nimet = [];
@@ -260,12 +278,14 @@ function luoUusiJoukkue() {
       sarjaId = input.value;
     }
   }
-  // let sarja = etsiSarja(sarjaId);
-  // for (const s of data.sarjat) {
-  //   if (parseInt(s.id) === parseInt(sarjaId)) {
-  //     sarja = s;
-  //   }
-  // }
+
+  const leimat = document.getElementById("leimat").querySelectorAll("input");
+  let leimaustavat = [];
+  for (const leima of leimat) {
+    if (leima.checked) {
+      leimaustavat.push(leima.value);
+    }
+  }
 
   const iideet = [];
   for (const joukkue of data.joukkueet) {
@@ -278,7 +298,7 @@ function luoUusiJoukkue() {
     nimi: nimi.value.trim(),
     jasenet: jasenet,
     rastit: [],
-    leimaustapa: [0],
+    leimaustapa: leimaustavat,
     sarja: sarjaId,
     id: newId,
   };
