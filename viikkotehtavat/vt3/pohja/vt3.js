@@ -3,10 +3,10 @@
 let inputId = 0;
 function luoLomake() {
   const jNimi = document.getElementById("nimi");
-  jNimi.addEventListener("input", inputHandlerNimi); //jos joukkue on defined, pitää saada olla sama nimi ku itellään
+  jNimi.addEventListener("input", inputHandlerNimi);
   jNimi.addEventListener("input", inputHandler);
-  addLeimat(); // muokkaa funktion checked-arvoja jos muokattavaJoukkue !== undefined
-  addSarjat(); // sama
+  addLeimat();
+  addSarjat();
 
   const jasenet = document.getElementById("jasenet");
   removeJasenet();
@@ -26,7 +26,7 @@ function luoLomake() {
   // const button = document.querySelector("button");
   // button.disabled = true;
   const form = document.getElementById("form");
-  form.addEventListener("submit", submitHandler); //vasta submithandlerin sisällä jakautuu iffillä että luodaanko vai muokataanko
+  form.addEventListener("submit", submitHandler);
 }
 
 // listätään datasta haetut sarjat lomakkeeseen checkboksiin alla olevassa muodossa
@@ -60,9 +60,11 @@ function addLeimat() {
   for (let i = 0; i < list.length; i++) {
     leimat.appendChild(list[i]);
   }
-  leimat
-    .querySelector("input")
-    .setCustomValidity("Joukkueella täytyy olla ainakin yksi leimaustapa");
+  if (muokattavaJoukkue === "undefined") {
+    leimat
+      .querySelector("input")
+      .setCustomValidity("Joukkueella täytyy olla ainakin yksi leimaustapa");
+  }
   leimat.addEventListener("input", inputHandlerLeimat);
   if (muokattavaJoukkue !== "undefined") {
     const l = leimat.querySelectorAll("input");
@@ -181,11 +183,24 @@ function inputHandlerNimi(e) {
   let nimet = [];
 
   // onko jo olemassa samannimisiä joukkueita
-  for (const joukkue of data.joukkueet) {
-    nimet.push(joukkue.nimi.trim().toLowerCase());
+  if (muokattavaJoukkue === "undefined") {
+    for (const joukkue of data.joukkueet) {
+      nimet.push(joukkue.nimi.trim().toLowerCase());
+    }
+    if (nimet.includes(nimi.value.trim().toLowerCase())) {
+      nimi.setCustomValidity("Tämän niminen joukkue on jo olemassa");
+    }
   }
-  if (nimet.includes(nimi.value.trim().toLowerCase())) {
-    nimi.setCustomValidity("Tämän niminen joukkue on jo olemassa");
+
+  if (muokattavaJoukkue !== "undefined") {
+    for (const joukkue of data.joukkueet) {
+      if (joukkue.id !== muokattavaJoukkue.id) {
+        nimet.push(joukkue.nimi.trim().toLowerCase());
+      }
+    }
+    if (nimet.includes(nimi.value.trim().toLowerCase())) {
+      nimi.setCustomValidity("Tämän niminen joukkue on jo olemassa");
+    }
   }
 
   // onko joukkueen nimessä vähintään kaksi merkkiä
@@ -337,6 +352,57 @@ function luoUusiJoukkue() {
   console.log(newJoukkue);
 }
 
+function muokkaaJoukkuetta() {
+  if (muokattavaJoukkue === "undefined") {
+    return;
+  }
+  const nimi = document.getElementById("nimi");
+  const radiot = document.getElementById("radio").querySelectorAll("input");
+  const jasenInputs = document
+    .getElementById("jasenet")
+    .querySelectorAll("input");
+
+  const jasenet = [];
+  for (const input of jasenInputs) {
+    if (input.value.trim().length > 0) {
+      jasenet.push(input.value.trim());
+    }
+  }
+
+  let sarjaId;
+  for (const input of radiot) {
+    if (input.checked) {
+      sarjaId = input.value;
+    }
+  }
+
+  const leimat = document.getElementById("leimat").querySelectorAll("input");
+  let leimaustavat = [];
+  for (const leima of leimat) {
+    if (leima.checked) {
+      leimaustavat.push(leima.value);
+    }
+  }
+
+  // laitetaan lomakkeen tiedot muokattavaJoukkue -objektille
+  muokattavaJoukkue.nimi = nimi.value.trim();
+  muokattavaJoukkue.jasenet = jasenet;
+  muokattavaJoukkue.leimaustapa = leimaustavat;
+  muokattavaJoukkue.sarja = sarjaId;
+
+  // muutetaan vanhan joukkueen tilalle dataan muokattavaJoukkue. Alla pois kommentoituna toinen toteutustapa.
+  data.joukkueet = data.joukkueet.map((j) =>
+    j.id === muokattavaJoukkue.id ? muokattavaJoukkue : j
+  );
+  // for (let i = 0; i < data.joukkueet.length; i++) {
+  //   if (data.joukkueet[i].id === muokattavaJoukkue.id) {
+  //     data.joukkueet[i] = muokattavaJoukkue;
+  //   }
+  // }
+
+  muokattavaJoukkue = "undefined";
+}
+
 function etsiSarja(sarjaId) {
   let sarja;
   for (const s of data.sarjat) {
@@ -421,7 +487,12 @@ function tulostaJoukkue(joukkue) {
 
 function submitHandler(e) {
   e.preventDefault();
-  luoUusiJoukkue();
+  if (muokattavaJoukkue === "undefined") {
+    luoUusiJoukkue();
+  }
+  if (muokattavaJoukkue !== "undefined") {
+    muokkaaJoukkuetta();
+  }
   luoLomake();
   luoJoukkueLista();
 }
