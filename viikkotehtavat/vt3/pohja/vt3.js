@@ -347,7 +347,7 @@ function luoUusiJoukkue() {
   let sarjaId;
   for (const input of radiot) {
     if (input.checked) {
-      sarjaId = input.value;
+      sarjaId = parseInt(input.value);
     }
   }
 
@@ -355,7 +355,7 @@ function luoUusiJoukkue() {
   let leimaustavat = [];
   for (const leima of leimat) {
     if (leima.checked) {
-      leimaustavat.push(leima.value);
+      leimaustavat.push(parseInt(leima.value));
     }
   }
 
@@ -376,7 +376,6 @@ function luoUusiJoukkue() {
   };
 
   data.joukkueet.push(newJoukkue);
-  console.log(newJoukkue);
 }
 
 function muokkaaJoukkuetta() {
@@ -407,7 +406,7 @@ function muokkaaJoukkuetta() {
   let leimaustavat = [];
   for (const leima of leimat) {
     if (leima.checked) {
-      leimaustavat.push(leima.value);
+      leimaustavat.push(parseInt(leima.value));
     }
   }
 
@@ -457,9 +456,15 @@ function luoJoukkueLista() {
   for (const joukkue of data.joukkueet) {
     joukkuelista.push(joukkue);
   }
-  joukkuelista.sort(
-    (a, b) => a.nimi.trim().toLowerCase() > b.nimi.trim().toLowerCase()
-  );
+  joukkuelista.sort((a, b) => {
+    if (a.nimi.trim().toLowerCase() < b.nimi.trim().toLowerCase()) {
+      return -1;
+    }
+    if (a.nimi.trim().toLowerCase() > b.nimi.trim().toLowerCase()) {
+      return 1;
+    }
+    return 0;
+  });
 
   for (let i = 0; i < joukkuelista.length; i++) {
     tulostaJoukkue(joukkuelista[i]);
