@@ -29,6 +29,33 @@ function luoLomake() {
   form.addEventListener("submit", submitHandler);
 }
 
+function luoLeimauslomake() {
+  const lNimi = document.getElementById("lNimi");
+  lNimi.addEventListener("input", inputHandlerUusiLeima);
+  const form2 = document.getElementById("form2");
+  form2.addEventListener("submit", submitHandlerUusiLeima);
+}
+
+function inputHandlerUusiLeima(e) {
+  e.target.setCustomValidity("");
+  if (e.target.value.trim().length < 2) {
+    e.target.setCustomValidity("Nimessä täytyy olla vähintään kaksi merkkiä");
+  }
+  for (const leima of data.leimaustapa) {
+    if (leima.trim().toLowerCase() === e.target.value.trim().toLowerCase()) {
+      e.target.setCustomValidity("Tämän niminen leimaustapa on jo olemassa");
+    }
+  }
+}
+
+function submitHandlerUusiLeima(e) {
+  e.preventDefault();
+  let lNimi = document.getElementById("lNimi");
+  data.leimaustapa.push(lNimi.value.trim());
+  lNimi.value = "";
+  luoLomake();
+}
+
 // listätään datasta haetut sarjat lomakkeeseen checkboksiin alla olevassa muodossa
 // <label>
 //   En kerro
@@ -500,5 +527,6 @@ function submitHandler(e) {
 let muokattavaJoukkue = "undefined";
 luoLomake();
 luoJoukkueLista();
+luoLeimauslomake();
 
 console.log(data);
