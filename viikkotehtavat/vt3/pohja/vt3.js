@@ -1,6 +1,7 @@
 "use strict"; // pidä tämä ensimmäisenä rivinä
 //@ts-check
-let inputId = 0;
+
+// luodaan lomake jolla luodaan tai muokataan joukkuetta
 function luoLomake() {
   const jNimi = document.getElementById("nimi");
   jNimi.addEventListener("input", inputHandlerNimi);
@@ -29,6 +30,7 @@ function luoLomake() {
   form.addEventListener("submit", submitHandler);
 }
 
+// luodaan lomake jolla tehdään uusi leimaustapa
 function luoLeimauslomake() {
   const lNimi = document.getElementById("lNimi");
   lNimi.addEventListener("input", inputHandlerUusiLeima);
@@ -36,6 +38,8 @@ function luoLeimauslomake() {
   form2.addEventListener("submit", submitHandlerUusiLeima);
 }
 
+// inputhandler lomakkeessa jolla luodaan uusi leimaustapa
+//Inputissa täytyy olla vähintään kaksi merkkiä ja nimi ei voi olla sama kuin olemassaoleva
 function inputHandlerUusiLeima(e) {
   e.target.setCustomValidity("");
   if (e.target.value.trim().length < 2) {
@@ -48,6 +52,7 @@ function inputHandlerUusiLeima(e) {
   }
 }
 
+// submithandler lomakkeelle jolla luodaan uusi leimaustapa
 function submitHandlerUusiLeima(e) {
   e.preventDefault();
   let lNimi = document.getElementById("lNimi");
@@ -56,7 +61,7 @@ function submitHandlerUusiLeima(e) {
   luoLomake();
 }
 
-// listätään datasta haetut sarjat lomakkeeseen checkboksiin alla olevassa muodossa
+// listätään datasta haetut leimat lomakkeeseen checkboksiin alla olevassa muodossa
 // <label>
 //   En kerro
 //   <input type="checkbox" name="leima" value="-" checked="checked" />
@@ -70,6 +75,7 @@ function addLeimat() {
     }
   }
 
+  // luodaan jokaista leimaustapaa vastaavat checboksit
   let list = [];
   for (const leima of data.leimaustapa) {
     const l = document.createElement("label");
@@ -78,21 +84,20 @@ function addLeimat() {
     inp.setAttribute("type", "checkbox");
     inp.setAttribute("name", "leima");
     inp.setAttribute("value", data.leimaustapa.indexOf(leima));
-    // radio.appendChild(l);
-    // }
     l.appendChild(inp);
     list.push(l);
   }
-  list.sort((a, b) => a > b);
   for (let i = 0; i < list.length; i++) {
     leimat.appendChild(list[i]);
   }
+  // jos kyse on uuden joukkueen luomisesta, pidetään huolta että ainakin yksi leimaustapa olisi valittuna
   if (muokattavaJoukkue === "undefined") {
     leimat
       .querySelector("input")
       .setCustomValidity("Joukkueella täytyy olla ainakin yksi leimaustapa");
   }
   leimat.addEventListener("input", inputHandlerLeimat);
+  // jos kyse on vanhan joukkueen muokkaamisesta, merkataan valituiksi ne leimaustavat jotka joukkueella on
   if (muokattavaJoukkue !== "undefined") {
     const l = leimat.querySelectorAll("input");
     for (const leima of l) {
@@ -103,6 +108,7 @@ function addLeimat() {
   }
 }
 
+// luodaan sarja-radiobuttonit
 function addSarjat() {
   let radio = document.getElementById("radio");
   if (radio.firstChild) {
@@ -123,13 +129,13 @@ function addSarjat() {
     l.appendChild(inp);
     list.push(l);
   }
-  list.sort((a, b) => a.textContent > b.textContent);
+  list.sort((a, b) => (a.textContent > b.textContent ? 1 : -1));
   for (let i = 0; i < list.length; i++) {
     radio.appendChild(list[i]);
   }
   const inp = radio.querySelector("input");
   inp.setAttribute("checked", "checked");
-
+  // jos muokataan valmista joukkuetta, merkataan radiobuttoneista valituksi se sarja joka joukkueella on
   if (muokattavaJoukkue !== "undefined") {
     const r = radio.querySelectorAll("input");
     for (const radio of r) {
@@ -140,6 +146,7 @@ function addSarjat() {
   }
 }
 
+// poistetaan kaikki jäsen-labelit. Käytetään kun luodaan lomake ja putsataan vanha pois
 function removeJasenet() {
   let next = document
     .getElementById("jasenet")
@@ -151,7 +158,7 @@ function removeJasenet() {
 }
 
 // luo uuden inputin, käytetään kun luodaan joukkueen jäsenten nimille kenttiä
-
+// input seuraavaa muotoa
 //  <label for="jasenx">Jäsen x: </label>
 //         <input type="text" name="nimi" id="jasenx" required="required" />
 function addInput(parent, input) {
@@ -186,7 +193,7 @@ function nimeaKentat(labels) {
   }
 }
 
-// inputhandleri leimaustavan valinnalle
+// inputhandleri leimaustavan valinnalle. Tarkistaa että leimaustapoja on vähintään yksi
 function inputHandlerLeimat(e) {
   const leimat = document.getElementById("leimat").querySelectorAll("input");
   let valitut = [];
@@ -219,6 +226,7 @@ function inputHandlerNimi(e) {
     }
   }
 
+  // jos kyse on joukkueen muokkaamisesta, pitää huomioida että joukkueen nimi saa olla sama kuin itsellään
   if (muokattavaJoukkue !== "undefined") {
     for (const joukkue of data.joukkueet) {
       if (joukkue.id !== muokattavaJoukkue.id) {
@@ -254,7 +262,6 @@ function inputHandler() {
   const tekstit = [];
 
   // validointi:
-
   // onko samannimisiä henkilöitä
   for (let i = 0; i < inputs.length; i++) {
     for (let j = 0; j < inputs.length; j++) {
@@ -271,12 +278,6 @@ function inputHandler() {
   }
 
   // onko jäseniä alle 2
-
-  // for (const input of inputs) {
-  //   let inp = input.value.trim().toLowerCase();
-  //   if (inp !== "") {
-  //     tekstit.push(inp);
-  //   }
   if (inputs.length < 3) {
     if (inputs[0].value.trim() === "") {
       inputs[0].setCustomValidity(
@@ -289,10 +290,8 @@ function inputHandler() {
       );
     }
   }
-  // }
 
   // tyhjien inputtien lisäys ja poisto:
-
   // lisätään empty inputtiin kaikki tyhjät
   for (const input of inputs) {
     if (input.value.trim() === "") {
@@ -329,7 +328,7 @@ function inputHandler() {
   // }
 }
 
-// uutta joukkuetta lisättäessä tämä on eventlisteneri kun painaa Lisää joukkue
+// uutta joukkuetta lisättäessä tämä on eventlisteneri kun painaa tallenna
 function luoUusiJoukkue() {
   const nimi = document.getElementById("nimi");
   const radiot = document.getElementById("radio").querySelectorAll("input");
@@ -337,6 +336,7 @@ function luoUusiJoukkue() {
     .getElementById("jasenet")
     .querySelectorAll("input");
 
+  // jäsenet listaan
   const jasenet = [];
   for (const input of jasenInputs) {
     if (input.value.trim().length > 0) {
@@ -344,6 +344,7 @@ function luoUusiJoukkue() {
     }
   }
 
+  // tallennetaan radiobuttoneista valittu inputin arvo sarjaId:hen
   let sarjaId;
   for (const input of radiot) {
     if (input.checked) {
@@ -351,6 +352,7 @@ function luoUusiJoukkue() {
     }
   }
 
+  // lisätään valitut leimaustavat leimaustavat-taulukkoon
   const leimat = document.getElementById("leimat").querySelectorAll("input");
   let leimaustavat = [];
   for (const leima of leimat) {
@@ -359,6 +361,8 @@ function luoUusiJoukkue() {
     }
   }
 
+  // lasketaan maksimi joukkueiden iideistä ja lisätään yksi.
+  // Tarvitaan kun luodaan uusi joukkue ja tälle id.
   const iideet = [];
   for (const joukkue of data.joukkueet) {
     iideet.push(joukkue.id);
@@ -378,6 +382,7 @@ function luoUusiJoukkue() {
   data.joukkueet.push(newJoukkue);
 }
 
+// vanhaa joukkuetta muokattaessa tämä on submitlistener kun tallennetaan
 function muokkaaJoukkuetta() {
   if (muokattavaJoukkue === "undefined") {
     return;
@@ -388,6 +393,7 @@ function muokkaaJoukkuetta() {
     .getElementById("jasenet")
     .querySelectorAll("input");
 
+  // lisätään jäsenet lomakkeesta jäsenet-listaan
   const jasenet = [];
   for (const input of jasenInputs) {
     if (input.value.trim().length > 0) {
@@ -395,6 +401,7 @@ function muokkaaJoukkuetta() {
     }
   }
 
+  // lisätään valittu sarja sarjaId:hen
   let sarjaId;
   for (const input of radiot) {
     if (input.checked) {
@@ -402,6 +409,7 @@ function muokkaaJoukkuetta() {
     }
   }
 
+  // lisätään valitut leimat leimaustavat-listaan
   const leimat = document.getElementById("leimat").querySelectorAll("input");
   let leimaustavat = [];
   for (const leima of leimat) {
@@ -429,6 +437,7 @@ function muokkaaJoukkuetta() {
   muokattavaJoukkue = "undefined";
 }
 
+// etsitään datasta sarja id:n mukaan. Käytetään kun tulostetaan joukkueet
 function etsiSarja(sarjaId) {
   let sarja;
   for (const s of data.sarjat) {
@@ -439,6 +448,7 @@ function etsiSarja(sarjaId) {
   return sarja;
 }
 
+// tulostetaan joukkueet aakkosjärjestyksessä.
 function luoJoukkueLista() {
   // jos on olemassa vanha lista, tuhotaan se ja luodaan uusi tyhjä
   const div = document.getElementById("joukkueet");
@@ -517,6 +527,7 @@ function tulostaJoukkue(joukkue) {
   lista.appendChild(li);
 }
 
+// joukkueen luomis/muokkaamislomakkeen submithandleri
 function submitHandler(e) {
   e.preventDefault();
   if (muokattavaJoukkue === "undefined") {
@@ -529,6 +540,9 @@ function submitHandler(e) {
   luoJoukkueLista();
 }
 
+// "main"
+
+let inputId = 0;
 let muokattavaJoukkue = "undefined";
 luoLomake();
 luoJoukkueLista();
