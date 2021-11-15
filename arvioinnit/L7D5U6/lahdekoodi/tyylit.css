@@ -1,0 +1,57 @@
+form fieldset label{
+    margin-right: 1em;
+    display: flex;
+    /* align-content: space-between; */
+    justify-content:space-between;
+    /* flex:auto; */
+    column-gap: 4em;
+}
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+form fieldset {
+    display: flex;
+    flex-direction: column;
+    /* flex-wrap: wrap; */
+    justify-content: space-between;
+    gap: 0.5em;
+}
+
+/* form fieldset>:last-child{
+    align-self:flex-start;
+} */
+
+.checker {
+    display: inline-flex;
+    flex-direction: row;
+    
+    justify-content:space-between;
+    /* gap: -0.5em; */
+}
+
+div.checker div > label{
+    /* background-color: aqua; */
+    /* align-self: flex-end; */
+    /* justify-content: space-around; */
+    gap: 0.5em;
+}
+
+.checker div{
+    display: flex;
+    flex-direction: column;
+    row-gap: 0.5em;
+}
+
+div:nth-child(3){
+    /* background-color: brown; */
+    /* display: none; */
+}
+
+.piilota{
+    display: none;
+}
+
+
+

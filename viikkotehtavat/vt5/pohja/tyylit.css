@@ -1,0 +1,25 @@
+body {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+#alaosa {
+  /* height: 180px; */
+  display: grid;
+  grid-template-columns: 25% 50% 25%;
+  height: 44vh;
+}
+
+#keski,
+#joukkueet,
+#rastit {
+  border: solid;
+  margin: 1em;
+}
+
+#joukkuelista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
