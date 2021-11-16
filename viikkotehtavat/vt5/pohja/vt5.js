@@ -5,26 +5,13 @@
 
 window.onload = function () {
   console.log(data);
-
-  let mapdiv = $("#map");
-  $(window).resize(function () {
-    mapdiv.css("width", Math.round(window.innerWidth) + "px");
-    mapdiv.css("height", Math.round(window.innerHeight / 2) + "px");
-  });
-
-  let mymap = new L.map("map", {
-    crs: L.TileLayer.MML.get3067Proj(),
-  }).setView([62.2333, 25.7333], 11);
-  L.tileLayer
-    .mml_wmts({
-      layer: "maastokartta",
-      key: "c9d83f93-222a-4009-bd29-475127d32e9c",
-    })
-    .addTo(mymap);
-
+  luoKartta();
   luoJoukkueLista();
   luoRastiLista();
+  luoDragDrop();
+}; //onload -funktion loppu, huomaa
 
+function luoDragDrop() {
   let drop = document.getElementById("keski");
   drop.addEventListener("dragover", function (e) {
     e.preventDefault();
@@ -39,7 +26,28 @@ window.onload = function () {
     // lisätään tämän elementin sisään
     e.target.appendChild(document.getElementById(data));
   });
-}; //onload -funktion loppu, huomaa
+}
+
+function luoKartta() {
+  let mapdiv = $("#map");
+
+  mapdiv.css("width", Math.round(window.innerWidth) + "px");
+  mapdiv.css("height", Math.round(window.innerHeight / 2) + "px");
+  $(window).resize(function () {
+    mapdiv.css("width", Math.round(window.innerWidth) + "px");
+    mapdiv.css("height", Math.round(window.innerHeight / 2) + "px");
+  });
+
+  let mymap = new L.map("map", {
+    crs: L.TileLayer.MML.get3067Proj(),
+  }).setView([62.2333, 25.7333], 11);
+  L.tileLayer
+    .mml_wmts({
+      layer: "maastokartta",
+      key: "c9d83f93-222a-4009-bd29-475127d32e9c",
+    })
+    .addTo(mymap);
+}
 
 function luoRastiLista() {
   const div = document.getElementById("rastit");
