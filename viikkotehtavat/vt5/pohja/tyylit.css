@@ -11,16 +11,17 @@ body {
   height: 44vh;
 }
 
+#joukkuelista,
+#rastilista,
+#keski {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
 #keski,
 #joukkueet,
 #rastit {
   border: solid;
   margin: 1em;
-}
-
-#joukkuelista,
-#rastilista {
-  list-style: none;
-  padding: 0;
-  margin: 0;
 }
