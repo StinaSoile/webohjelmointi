@@ -5,11 +5,52 @@
 
 window.onload = function () {
   console.log(data);
-  luoKartta();
+  let mymap = luoKartta();
   luoJoukkueLista();
   luoRastiLista();
   luoDragDrop();
+  let bounds = piirraRastit(mymap);
+  $(window).resize(function () {
+    mymap.fitBounds(bounds);
+  });
+  //nappi johon voi sijoittaa testattavia juttuja:
+  document
+    .getElementById("button")
+    .addEventListener("click", () => zoom(mymap));
 }; //onload -funktion loppu, huomaa
+
+function zoom(mymap) {
+  console.log(mymap);
+}
+
+function piirraRastit(mymap) {
+  let lonArr = [];
+  let latArr = [];
+  for (const rasti of data.rastit) {
+    let lat = rasti.lat;
+    let lon = rasti.lon;
+    let circle = L.circle([lat, lon], {
+      color: "red",
+      fillOpacity: 0.0,
+      radius: 50,
+    }).addTo(mymap);
+    lonArr.push(lon);
+    latArr.push(lat);
+  }
+  let minlat = Math.min(...latArr);
+  let maxlat = Math.max(...latArr);
+  let minlon = Math.min(...lonArr);
+  let maxlon = Math.max(...lonArr);
+  let corner1 = L.latLng(minlat, minlon);
+  let corner2 = L.latLng(maxlat, maxlon);
+  let bounds = L.latLngBounds(corner1, corner2);
+  mymap.fitBounds(bounds);
+  // mymap.fitBounds([
+  //   [minlat, minlon],
+  //   [maxlat, maxlon],
+  // ]);
+  return bounds;
+}
 
 function luoDragDrop() {
   let drop = document.getElementById("keski");
@@ -22,7 +63,7 @@ function luoDragDrop() {
   drop.addEventListener("drop", function (e) {
     e.preventDefault();
 
-    var data = e.dataTransfer.getData("text");
+    let data = e.dataTransfer.getData("text");
     // lisätään tämän elementin sisään
     e.target.appendChild(document.getElementById(data));
   });
@@ -40,19 +81,18 @@ function luoKartta() {
 
   let mymap = new L.map("map", {
     crs: L.TileLayer.MML.get3067Proj(),
-  }).setView([62.2333, 25.7333], 11);
+    center: [62.156532, 25.542431],
+    zoom: 11,
+  });
+
   L.tileLayer
     .mml_wmts({
       layer: "maastokartta",
       key: "c9d83f93-222a-4009-bd29-475127d32e9c",
     })
     .addTo(mymap);
-}
 
-function poistaSisalto(parent) {
-  while (parent.firstChild) {
-    parent.removeChild(parent.firstChild);
-  }
+  return mymap;
 }
 
 function luoRastiLista() {
@@ -94,11 +134,16 @@ function tulostaRasti(rasti, i, length) {
   // const a = document.createElement("a");
   div.textContent = rasti.koodi.trim();
   // div.appendChild(a);
-  div.setAttribute("draggable", "true");
+  div.setAttribute("id", rasti.id);
 
+  div.setAttribute("draggable", "true");
+  div.addEventListener("dragstart", function (e) {
+    // raahataan datana elementin id-attribuutin arvo
+    e.dataTransfer.setData("text/plain", div.getAttribute("id"));
+  });
   lista.appendChild(div);
   let color = rainbow(length, i);
-  $("#rastit li:nth-child(" + i + ")").css("background-color", color);
+  $("#rastilista li:nth-child(" + i + ")").css("background-color", color);
 }
 
 // tulostetaan joukkueet aakkosjärjestyksessä.
