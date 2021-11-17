@@ -45,6 +45,7 @@ function piirraRastit(mymap) {
   let corner2 = L.latLng(maxlat, maxlon);
   let bounds = L.latLngBounds(corner1, corner2);
   mymap.fitBounds(bounds);
+  console.log(bounds);
   // mymap.fitBounds([
   //   [minlat, minlon],
   //   [maxlat, maxlon],
@@ -59,13 +60,49 @@ function luoDragDrop() {
     // Set the dropEffect to move
     e.dataTransfer.dropEffect = "move";
   });
+  let lista = document.getElementById("keskilista");
 
   drop.addEventListener("drop", function (e) {
     e.preventDefault();
-
-    let data = e.dataTransfer.getData("text");
+    let data = e.dataTransfer.getData("rastidata");
     // lisätään tämän elementin sisään
-    e.target.appendChild(document.getElementById(data));
+    lista.appendChild(document.getElementById(data));
+  });
+  drop.addEventListener("drop", function (e) {
+    e.preventDefault();
+    let data = e.dataTransfer.getData("joukkuedata");
+    // lisätään tämän elementin sisään
+    lista.appendChild(document.getElementById(data));
+  });
+
+  // joukkuejutut
+  let joukkuedrop = document.getElementById("joukkueet");
+  joukkuedrop.addEventListener("dragover", function (e) {
+    e.preventDefault();
+    // Set the dropEffect to move
+    e.dataTransfer.dropEffect = "move";
+  });
+  joukkuedrop.addEventListener("drop", function (e) {
+    let jLista = document.getElementById("joukkuelista");
+    e.preventDefault();
+    let data = e.dataTransfer.getData("joukkuedata");
+    // lisätään tämän elementin sisään
+    jLista.appendChild(document.getElementById(data));
+  });
+
+  // rastijutut
+  let rastidrop = document.getElementById("rastit");
+  rastidrop.addEventListener("dragover", function (e) {
+    e.preventDefault();
+    // Set the dropEffect to move
+    e.dataTransfer.dropEffect = "move";
+  });
+  rastidrop.addEventListener("drop", function (e) {
+    let rLista = document.getElementById("rastilista");
+    e.preventDefault();
+    let data = e.dataTransfer.getData("rastidata");
+    // lisätään tämän elementin sisään
+    rLista.appendChild(document.getElementById(data));
   });
 }
 
@@ -139,7 +176,7 @@ function tulostaRasti(rasti, i, length) {
   div.setAttribute("draggable", "true");
   div.addEventListener("dragstart", function (e) {
     // raahataan datana elementin id-attribuutin arvo
-    e.dataTransfer.setData("text/plain", div.getAttribute("id"));
+    e.dataTransfer.setData("rastidata", div.getAttribute("id"));
   });
   lista.appendChild(div);
   let color = rainbow(length, i);
@@ -193,7 +230,7 @@ function tulostaJoukkue(joukkue, i, length) {
   div.setAttribute("draggable", "true");
   div.addEventListener("dragstart", function (e) {
     // raahataan datana elementin id-attribuutin arvo
-    e.dataTransfer.setData("text/plain", div.getAttribute("id"));
+    e.dataTransfer.setData("joukkuedata", div.getAttribute("id"));
   });
   lista.appendChild(div);
   let color = rainbow(length, i);
