@@ -49,6 +49,12 @@ function luoKartta() {
     .addTo(mymap);
 }
 
+function poistaSisalto(parent) {
+  while (parent.firstChild) {
+    parent.removeChild(parent.firstChild);
+  }
+}
+
 function luoRastiLista() {
   const div = document.getElementById("rastit");
   let lista = document.getElementById("rastilista");
@@ -84,15 +90,15 @@ function luoRastiLista() {
 function tulostaRasti(rasti, i, length) {
   const lista = document.getElementById("rastilista");
 
-  const li = document.createElement("li");
+  const div = document.createElement("li");
   // const a = document.createElement("a");
-  li.textContent = rasti.koodi.trim();
-  // li.appendChild(a);
-  li.setAttribute("draggable", "true");
+  div.textContent = rasti.koodi.trim();
+  // div.appendChild(a);
+  div.setAttribute("draggable", "true");
 
-  lista.appendChild(li);
+  lista.appendChild(div);
   let color = rainbow(length, i);
-  $("ul#rastilista li:nth-child(" + i + ")").css("background-color", color);
+  $("#rastit li:nth-child(" + i + ")").css("background-color", color);
 }
 
 // tulostetaan joukkueet aakkosjärjestyksessä.
@@ -136,19 +142,20 @@ function luoJoukkueLista() {
 function tulostaJoukkue(joukkue, i, length) {
   const lista = document.getElementById("joukkuelista");
 
-  const li = document.createElement("li");
-  li.textContent = joukkue.nimi.trim();
-  li.setAttribute("id", joukkue.id);
-  li.setAttribute("draggable", "true");
-  li.addEventListener("dragstart", function (e) {
+  const div = document.createElement("li");
+  div.textContent = joukkue.nimi.trim();
+  div.setAttribute("id", joukkue.id);
+  div.setAttribute("draggable", "true");
+  div.addEventListener("dragstart", function (e) {
     // raahataan datana elementin id-attribuutin arvo
-    e.dataTransfer.setData("text/plain", li.getAttribute("id"));
+    e.dataTransfer.setData("text/plain", div.getAttribute("id"));
   });
-  lista.appendChild(li);
+  lista.appendChild(div);
   let color = rainbow(length, i);
 
-  $("ul#joukkuelista li:nth-child(" + i + ")").css("background-color", color);
+  $("#joukkuelista li:nth-child(" + i + ")").css("background-color", color);
 }
+
 function rainbow(numOfSteps, step) {
   // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
   // Adam Cole, 2011-Sept-14
