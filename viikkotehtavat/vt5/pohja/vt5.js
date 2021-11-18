@@ -54,26 +54,53 @@ function piirraRastit(mymap) {
 }
 
 function luoDragDrop() {
-  let drop = document.getElementById("keski");
+  let drop = document.getElementById("keskilista");
   drop.addEventListener("dragover", function (e) {
     e.preventDefault();
     // Set the dropEffect to move
     e.dataTransfer.dropEffect = "move";
   });
-  let lista = document.getElementById("keskilista");
 
-  drop.addEventListener("drop", function (e) {
+  drop.ondrop = function (e) {
     e.preventDefault();
-    let data = e.dataTransfer.getData("rastidata");
-    // lisätään tämän elementin sisään
-    lista.appendChild(document.getElementById(data));
-  });
-  drop.addEventListener("drop", function (e) {
-    e.preventDefault();
-    let data = e.dataTransfer.getData("joukkuedata");
-    // lisätään tämän elementin sisään
-    lista.appendChild(document.getElementById(data));
-  });
+    let id = e.dataTransfer.getData("joukkuedata");
+    const el = document.getElementById(id);
+
+    console.log(
+      `
+pageX: ${e.pageX}
+clientX: ${e.clientX}
+offsetX: ${e.offsetX}
+screenX: ${e.screenX}
+x: ${e.x}
+drop.getBoundingClientRect().left: ${drop.getBoundingClientRect().left}
+`
+    );
+
+    drop.append(el);
+    el.style.position = "absolute";
+    el.style.top =
+      -el.offsetHeight / 2 -
+      drop.getBoundingClientRect().top +
+      e.clientY +
+      "px";
+    el.style.left =
+      -el.offsetWidth / 2 -
+      drop.getBoundingClientRect().left +
+      e.clientX +
+      "px";
+
+    // el.style.top = 0;
+    // el.style.left = 0;
+
+    // el.style.top = e.pageY - el.offsetHeight / 2 + "px";
+    // el.style.left = e.pageX - el.offsetWidth / 2 + "px";
+
+    // console.log(`
+    // newX: ${newX} ${x} ${e.screenX}
+    // newY: ${newY} ${y} ${e.screenY}
+    // `);
+  };
 
   // joukkuejutut
   let joukkuedrop = document.getElementById("joukkueet");
@@ -82,12 +109,18 @@ function luoDragDrop() {
     // Set the dropEffect to move
     e.dataTransfer.dropEffect = "move";
   });
+
   joukkuedrop.addEventListener("drop", function (e) {
     let jLista = document.getElementById("joukkuelista");
     e.preventDefault();
-    let data = e.dataTransfer.getData("joukkuedata");
-    // lisätään tämän elementin sisään
-    jLista.appendChild(document.getElementById(data));
+    let id = e.dataTransfer.getData("joukkuedata");
+    const el = document.getElementById(id);
+
+    el.style.position = null;
+    el.style.top = null;
+    el.style.left = null;
+
+    jLista.appendChild(el);
   });
 
   // rastijutut
@@ -224,15 +257,15 @@ function luoJoukkueLista() {
 function tulostaJoukkue(joukkue, i, length) {
   const lista = document.getElementById("joukkuelista");
 
-  const div = document.createElement("li");
-  div.textContent = joukkue.nimi.trim();
-  div.setAttribute("id", joukkue.id);
-  div.setAttribute("draggable", "true");
-  div.addEventListener("dragstart", function (e) {
+  const li = document.createElement("li");
+  li.textContent = joukkue.nimi.trim();
+  li.setAttribute("id", joukkue.id);
+  li.setAttribute("draggable", "true");
+  li.addEventListener("dragstart", function (e) {
     // raahataan datana elementin id-attribuutin arvo
-    e.dataTransfer.setData("joukkuedata", div.getAttribute("id"));
+    e.dataTransfer.setData("joukkuedata", li.getAttribute("id"));
   });
-  lista.appendChild(div);
+  lista.appendChild(li);
   let color = rainbow(length, i);
 
   $("#joukkuelista li:nth-child(" + i + ")").css("background-color", color);
