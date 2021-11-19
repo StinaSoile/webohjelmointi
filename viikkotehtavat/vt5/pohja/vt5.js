@@ -53,8 +53,36 @@ function piirraRastit(mymap) {
   return bounds;
 }
 
+function piirraJoukkueenMatka(id) {
+  console.log(id);
+  // etsi joukkue kys. id:llä datasta (huom, id:ssä on alussa tallennettu ylimääräinen "id")
+  // etsi joukkueen rastit, tsekkaa validit (ks PALJON mallia aiemmasta viikkotehtävästä)
+  // PIIRRÄ, polyline. miten? ohjauksen esimerkki.
+  // Ei varmaan tarvi ajatella noita kartassa olevia palloja ollenkaan, koordinaatit vaa
+}
+
+const ps = {};
+
 function luoDragDrop() {
   let drop = document.getElementById("keskilista");
+  window.onresize = function (e) {
+    const lis = drop.getElementsByTagName("li");
+    // console.log(lis);
+    // console.log(drop.getBoundingClientRect());
+    const dropLeft = drop.getBoundingClientRect().left;
+    // const dropTop = drop.getBoundingClientRect().top;
+    for (const l of lis) {
+      // const prevX = l.getBoundingClientRect().left;
+      const a = drop.getBoundingClientRect().right - dropLeft;
+      // const b = prevX - dropLeft;
+      // const p = b / a;
+
+      l.style.left = a * ps[l.id] + "px";
+
+      // console.log("p:", a, b, p);
+    }
+  };
+
   drop.addEventListener("dragover", function (e) {
     e.preventDefault();
     // Set the dropEffect to move
@@ -63,32 +91,44 @@ function luoDragDrop() {
 
   drop.ondrop = function (e) {
     e.preventDefault();
+
     let id = e.dataTransfer.getData("joukkuedata");
     const el = document.getElementById(id);
-
-    console.log(
-      `
-pageX: ${e.pageX}
-clientX: ${e.clientX}
-offsetX: ${e.offsetX}
-screenX: ${e.screenX}
-x: ${e.x}
-drop.getBoundingClientRect().left: ${drop.getBoundingClientRect().left}
-`
-    );
+    piirraJoukkueenMatka(id);
+    // console.log(
+    //   `
+    // pageX: ${e.pageX}
+    // clientX: ${e.clientX}
+    // offsetX: ${e.offsetX}
+    // screenX: ${e.screenX}
+    // x: ${e.x}
+    // drop.getBoundingClientRect().left: ${drop.getBoundingClientRect().left}
+    // drop.innerWidth : ${drop.innerWidth}
+    // `
+    // );
 
     drop.append(el);
-    el.style.position = "absolute";
+    ps[el.id] = el.style.position = "absolute";
     el.style.top =
-      -el.offsetHeight / 2 -
-      drop.getBoundingClientRect().top +
-      e.clientY +
-      "px";
+      // -el.offsetHeight / 2
+      -drop.getBoundingClientRect().top + e.clientY + "px";
+
     el.style.left =
-      -el.offsetWidth / 2 -
-      drop.getBoundingClientRect().left +
-      e.clientX +
-      "px";
+      // -el.offsetWidth / 2
+      -drop.getBoundingClientRect().left + e.clientX + "px";
+
+    const dropLeft = drop.getBoundingClientRect().left;
+    // const dropTop = drop.getBoundingClientRect().top;
+
+    const prevX = el.getBoundingClientRect().left;
+    const a = drop.getBoundingClientRect().right - dropLeft;
+    const b = prevX - dropLeft;
+    const p = b / a;
+    // console.log(`
+    // b: ${b}
+    // el.style.left: ${el.style.left}
+    // `);
+    ps[el.id] = p;
 
     // el.style.top = 0;
     // el.style.left = 0;
@@ -204,7 +244,7 @@ function tulostaRasti(rasti, i, length) {
   // const a = document.createElement("a");
   div.textContent = rasti.koodi.trim();
   // div.appendChild(a);
-  div.setAttribute("id", rasti.id);
+  div.setAttribute("id", "id" + rasti.id);
 
   div.setAttribute("draggable", "true");
   div.addEventListener("dragstart", function (e) {
@@ -259,7 +299,7 @@ function tulostaJoukkue(joukkue, i, length) {
 
   const li = document.createElement("li");
   li.textContent = joukkue.nimi.trim();
-  li.setAttribute("id", joukkue.id);
+  li.setAttribute("id", "id" + joukkue.id);
   li.setAttribute("draggable", "true");
   li.addEventListener("dragstart", function (e) {
     // raahataan datana elementin id-attribuutin arvo
