@@ -106,123 +106,113 @@ const ps = {};
 
 function luoDragDrop(mymap, layerGroup) {
   let drop = document.getElementById("keskilista");
+  let joukkuedrop = document.getElementById("joukkueet");
+  let rastidrop = document.getElementById("rastit");
+
   window.onresize = function (e) {
     const lis = drop.getElementsByTagName("li");
-    // console.log(lis);
-    // console.log(drop.getBoundingClientRect());
     const dropLeft = drop.getBoundingClientRect().left;
-    // const dropTop = drop.getBoundingClientRect().top;
     for (const l of lis) {
-      // const prevX = l.getBoundingClientRect().left;
       const a = drop.getBoundingClientRect().right - dropLeft;
-      // const b = prevX - dropLeft;
-      // const p = b / a;
-
       l.style.left = a * ps[l.id] + "px";
-
-      // console.log("p:", a, b, p);
     }
   };
 
-  drop.addEventListener("dragover", function (e) {
-    e.preventDefault();
-    // Set the dropEffect to move
-    e.dataTransfer.dropEffect = "move";
-  });
+  luoDrag(drop);
+  luoDrag(joukkuedrop);
+  luoDrag(rastidrop);
+  // drop.addEventListener("dragover", function (e) {
+  //   e.preventDefault();
+  //   // Set the dropEffect to move
+  //   e.dataTransfer.dropEffect = "move";
+  // });
+
+  // joukkuedrop.addEventListener("dragover", function (e) {
+  //   e.preventDefault();
+  //   // Set the dropEffect to move
+  //   e.dataTransfer.dropEffect = "move";
+  // });
+
+  // rastidrop.addEventListener("dragover", function (e) {
+  //   e.preventDefault();
+  //   // Set the dropEffect to move
+  //   e.dataTransfer.dropEffect = "move";
+  // });
 
   drop.ondrop = function (e) {
     e.preventDefault();
-
+    let el;
+    let rId = e.dataTransfer.getData("rastidata");
+    if (rId.length !== 0) {
+      el = document.getElementById(rId);
+    }
     let id = e.dataTransfer.getData("joukkuedata");
-    const el = document.getElementById(id);
-    piirraJoukkueenMatka(id, mymap, layerGroup);
-    // console.log(
-    //   `
-    // pageX: ${e.pageX}
-    // clientX: ${e.clientX}
-    // offsetX: ${e.offsetX}
-    // screenX: ${e.screenX}
-    // x: ${e.x}
-    // drop.getBoundingClientRect().left: ${drop.getBoundingClientRect().left}
-    // drop.innerWidth : ${drop.innerWidth}
-    // `
-    // );
+    if (id.length !== 0) {
+      el = document.getElementById(id);
+      piirraJoukkueenMatka(id, mymap, layerGroup);
+    }
+    if (el) {
+      drop.append(el);
+      ps[el.id] = el.style.position = "absolute";
+      el.style.top =
+        // -el.offsetHeight / 2
+        -drop.getBoundingClientRect().top + e.clientY + "px";
 
-    drop.append(el);
-    ps[el.id] = el.style.position = "absolute";
-    el.style.top =
-      // -el.offsetHeight / 2
-      -drop.getBoundingClientRect().top + e.clientY + "px";
+      el.style.left =
+        // -el.offsetWidth / 2
+        -drop.getBoundingClientRect().left + e.clientX + "px";
 
-    el.style.left =
-      // -el.offsetWidth / 2
-      -drop.getBoundingClientRect().left + e.clientX + "px";
+      const dropLeft = drop.getBoundingClientRect().left;
+      // const dropTop = drop.getBoundingClientRect().top;
 
-    const dropLeft = drop.getBoundingClientRect().left;
-    // const dropTop = drop.getBoundingClientRect().top;
-
-    const prevX = el.getBoundingClientRect().left;
-    const a = drop.getBoundingClientRect().right - dropLeft;
-    const b = prevX - dropLeft;
-    const p = b / a;
-    // console.log(`
-    // b: ${b}
-    // el.style.left: ${el.style.left}
-    // `);
-    ps[el.id] = p;
-
-    // el.style.top = 0;
-    // el.style.left = 0;
-
-    // el.style.top = e.pageY - el.offsetHeight / 2 + "px";
-    // el.style.left = e.pageX - el.offsetWidth / 2 + "px";
-
-    // console.log(`
-    // newX: ${newX} ${x} ${e.screenX}
-    // newY: ${newY} ${y} ${e.screenY}
-    // `);
+      const prevX = el.getBoundingClientRect().left;
+      const a = drop.getBoundingClientRect().right - dropLeft;
+      const b = prevX - dropLeft;
+      const p = b / a;
+    }
   };
-
-  // joukkuejutut
-  let joukkuedrop = document.getElementById("joukkueet");
-  joukkuedrop.addEventListener("dragover", function (e) {
-    e.preventDefault();
-    // Set the dropEffect to move
-    e.dataTransfer.dropEffect = "move";
-  });
 
   joukkuedrop.addEventListener("drop", function (e) {
     let jLista = document.getElementById("joukkuelista");
     e.preventDefault();
     let id = e.dataTransfer.getData("joukkuedata");
-    const el = document.getElementById(id);
+    if (id.length !== 0) {
+      const el = document.getElementById(id);
 
-    el.style.position = null;
-    el.style.top = null;
-    el.style.left = null;
+      el.style.position = null;
+      el.style.top = null;
+      el.style.left = null;
 
-    jLista.appendChild(el);
-    for (let i = 0; i < layerGroup.length; i++) {
-      if (layerGroup[i].id === id) {
-        layerGroup[i].remove(mymap);
-        layerGroup.splice(i, 1);
+      jLista.appendChild(el);
+      for (let i = 0; i < layerGroup.length; i++) {
+        if (layerGroup[i].id === id) {
+          layerGroup[i].remove(mymap);
+          layerGroup.splice(i, 1);
+        }
       }
     }
   });
 
-  // rastijutut
-  let rastidrop = document.getElementById("rastit");
-  rastidrop.addEventListener("dragover", function (e) {
-    e.preventDefault();
-    // Set the dropEffect to move
-    e.dataTransfer.dropEffect = "move";
-  });
   rastidrop.addEventListener("drop", function (e) {
     let rLista = document.getElementById("rastilista");
     e.preventDefault();
     let data = e.dataTransfer.getData("rastidata");
-    // lisätään tämän elementin sisään
-    rLista.appendChild(document.getElementById(data));
+    if (data.length !== 0) {
+      const el = document.getElementById(data);
+
+      el.style.position = null;
+      el.style.top = null;
+      el.style.left = null;
+      rLista.appendChild(el);
+    }
+  });
+}
+
+function luoDrag(element) {
+  element.addEventListener("dragover", function (e) {
+    e.preventDefault();
+    // Set the dropEffect to move
+    e.dataTransfer.dropEffect = "move";
   });
 }
 
