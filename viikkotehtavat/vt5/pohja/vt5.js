@@ -5,10 +5,11 @@
 
 window.onload = function () {
   console.log(data);
+  let layerGroup = []; // tallennetaan tänne polylinet kartalta nini että ne voi hakea id:n perusteella
   let mymap = luoKartta();
   luoJoukkueLista();
   luoRastiLista();
-  luoDragDrop();
+  luoDragDrop(mymap, layerGroup);
   let bounds = piirraRastit(mymap);
   $(window).resize(function () {
     mymap.fitBounds(bounds);
@@ -45,7 +46,6 @@ function piirraRastit(mymap) {
   let corner2 = L.latLng(maxlat, maxlon);
   let bounds = L.latLngBounds(corner1, corner2);
   mymap.fitBounds(bounds);
-  console.log(bounds);
   // mymap.fitBounds([
   //   [minlat, minlon],
   //   [maxlat, maxlon],
@@ -53,17 +53,58 @@ function piirraRastit(mymap) {
   return bounds;
 }
 
-function piirraJoukkueenMatka(id) {
-  console.log(id);
-  // etsi joukkue kys. id:llä datasta (huom, id:ssä on alussa tallennettu ylimääräinen "id")
-  // etsi joukkueen rastit, tsekkaa validit (ks PALJON mallia aiemmasta viikkotehtävästä)
-  // PIIRRÄ, polyline. miten? ohjauksen esimerkki.
-  // Ei varmaan tarvi ajatella noita kartassa olevia palloja ollenkaan, koordinaatit vaa
+function haeJoukkue(i) {
+  let j;
+  for (const joukkue of data.joukkueet) {
+    if (joukkue.id.toString() === i.substring(2)) {
+      j = joukkue;
+    }
+  }
+  return j;
+}
+
+/**
+ * //KOPIOITU VT1:stä
+ * hakee annetun joukkueen merkitsevät rastit.
+ * @param {Object} joukkue
+ * @returns Array, johon on tallennettu koodit niistä joukkueen rasteista, jotka huomioidaan
+ */
+function haeRastit(joukkue) {
+  let arr = [];
+  let kayty = {};
+  for (const r of joukkue.rastit) {
+    //käydään läpi kaikki joukkueen rastit
+    if (typeof r === "object") {
+      //varmistetaan, että rasti on objekti eikä jotain outoa
+
+      for (const d of data.rastit) {
+        if (r.rasti === d.id && kayty[r.rasti] === undefined) {
+          //etsitään, onko tietokannassa rastia joka vastaa joukkueen merkitsemää
+          kayty[r.rasti] = true;
+          arr.push(d); //jos rasti vastaa tietokannan rastia, lisätään sen koodi listaan
+        }
+      }
+    }
+  }
+  return arr;
+}
+
+function piirraJoukkueenMatka(id, mymap, layerGroup) {
+  const joukkue = haeJoukkue(id);
+  const rastiArr = haeRastit(joukkue); // tämä on nyt lista rastiobjekteista
+  let koord = [];
+  for (let i = 0; i < rastiArr.length; i++) {
+    koord.push([rastiArr[i].lat, rastiArr[i].lon]);
+  }
+  let color = document.getElementById(id).style.backgroundColor;
+  let line = L.polyline(koord, { color: color }).addTo(mymap);
+  line.id = id;
+  layerGroup.push(line);
 }
 
 const ps = {};
 
-function luoDragDrop() {
+function luoDragDrop(mymap, layerGroup) {
   let drop = document.getElementById("keskilista");
   window.onresize = function (e) {
     const lis = drop.getElementsByTagName("li");
@@ -94,7 +135,7 @@ function luoDragDrop() {
 
     let id = e.dataTransfer.getData("joukkuedata");
     const el = document.getElementById(id);
-    piirraJoukkueenMatka(id);
+    piirraJoukkueenMatka(id, mymap, layerGroup);
     // console.log(
     //   `
     // pageX: ${e.pageX}
@@ -161,6 +202,12 @@ function luoDragDrop() {
     el.style.left = null;
 
     jLista.appendChild(el);
+    for (let i = 0; i < layerGroup.length; i++) {
+      if (layerGroup[i].id === id) {
+        layerGroup[i].remove(mymap);
+        layerGroup.splice(i, 1);
+      }
+    }
   });
 
   // rastijutut
