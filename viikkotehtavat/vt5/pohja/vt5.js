@@ -20,6 +20,10 @@ window.onload = function () {
     .addEventListener("click", () => zoom(mymap));
 }; //onload -funktion loppu, huomaa
 
+let onLi = false; //muuttuja, joka asetetaan trueksi,
+// kun raahataan jotain toisen li-elementin päälle.
+// tätä käytetään joukkueiden ja rastien raahauksessa siihen, että tiedetään,
+// pudotetaanko raahattava juttu listan sekaan vai perään
 function zoom(mymap) {
   console.log(mymap);
 }
@@ -33,7 +37,7 @@ function piirraRastit(mymap) {
     let circle = L.circle([lat, lon], {
       color: "red",
       fillOpacity: 0.0,
-      radius: 50,
+      radius: 150,
     }).addTo(mymap);
     lonArr.push(lon);
     latArr.push(lat);
@@ -66,22 +70,41 @@ function haeJoukkue(i) {
 /**
  * //KOPIOITU VT1:stä
  * hakee annetun joukkueen merkitsevät rastit.
+ * TODO: viimeinen lahto ja eka maali, vt1/vt2
  * @param {Object} joukkue
  * @returns Array, johon on tallennettu koodit niistä joukkueen rasteista, jotka huomioidaan
  */
 function haeRastit(joukkue) {
   let arr = [];
   let kayty = {};
+  let alku = false;
+  let lahtoId;
+  let maaliId;
+  for (const d of data.rastit) {
+    if (d.koodi === "LAHTO") {
+      lahtoId = d.id;
+    }
+    if (d.koodi === "MAALI") {
+      maaliId = d.id;
+    }
+  }
   for (const r of joukkue.rastit) {
     //käydään läpi kaikki joukkueen rastit
+
     if (typeof r === "object") {
       //varmistetaan, että rasti on objekti eikä jotain outoa
-
-      for (const d of data.rastit) {
-        if (r.rasti === d.id && kayty[r.rasti] === undefined) {
-          //etsitään, onko tietokannassa rastia joka vastaa joukkueen merkitsemää
-          kayty[r.rasti] = true;
-          arr.push(d); //jos rasti vastaa tietokannan rastia, lisätään sen koodi listaan
+      if (r.rasti === lahtoId) {
+        arr = [];
+        alku = true;
+      } else if (r.rasti === maaliId && alku) {
+        return arr;
+      } else {
+        for (const d of data.rastit) {
+          if (r.rasti === d.id && kayty[r.rasti] === undefined && alku) {
+            //etsitään, onko tietokannassa rastia joka vastaa joukkueen merkitsemää
+            kayty[r.rasti] = true;
+            arr.push(d); //jos rasti vastaa tietokannan rastia, lisätään sen koodi listaan
+          }
         }
       }
     }
@@ -108,6 +131,8 @@ function luoDragDrop(mymap, layerGroup) {
   let drop = document.getElementById("keskilista");
   let joukkuedrop = document.getElementById("joukkueet");
   let rastidrop = document.getElementById("rastit");
+  let jLista = document.getElementById("joukkuelista");
+  let rLista = document.getElementById("rastilista");
 
   window.onresize = function (e) {
     const lis = drop.getElementsByTagName("li");
@@ -121,23 +146,6 @@ function luoDragDrop(mymap, layerGroup) {
   luoDrag(drop);
   luoDrag(joukkuedrop);
   luoDrag(rastidrop);
-  // drop.addEventListener("dragover", function (e) {
-  //   e.preventDefault();
-  //   // Set the dropEffect to move
-  //   e.dataTransfer.dropEffect = "move";
-  // });
-
-  // joukkuedrop.addEventListener("dragover", function (e) {
-  //   e.preventDefault();
-  //   // Set the dropEffect to move
-  //   e.dataTransfer.dropEffect = "move";
-  // });
-
-  // rastidrop.addEventListener("dragover", function (e) {
-  //   e.preventDefault();
-  //   // Set the dropEffect to move
-  //   e.dataTransfer.dropEffect = "move";
-  // });
 
   drop.ondrop = function (e) {
     e.preventDefault();
@@ -172,8 +180,33 @@ function luoDragDrop(mymap, layerGroup) {
     }
   };
 
+  let jLi = document.querySelectorAll("#joukkuelista li");
+  for (const li of jLi) {
+    li.addEventListener("drop", function (e) {
+      e.preventDefault();
+      onLi = true;
+      let id = e.dataTransfer.getData("joukkuedata");
+      const el = document.getElementById(id);
+      let all = Array.from(jLista.children);
+      let index = all.indexOf(li) - 1;
+      $("#joukkuelista li:eq(" + index + ")").after(el);
+    });
+  }
+
+  let rLi = document.querySelectorAll("#rastilista li");
+  for (const li of rLi) {
+    li.addEventListener("drop", function (e) {
+      e.preventDefault();
+      onLi = true;
+      let id = e.dataTransfer.getData("rastidata");
+      const el = document.getElementById(id);
+      let all = Array.from(rLista.children);
+      let index = all.indexOf(li) - 1;
+      $("#rastilista li:eq(" + index + ")").after(el);
+    });
+  }
+
   joukkuedrop.addEventListener("drop", function (e) {
-    let jLista = document.getElementById("joukkuelista");
     e.preventDefault();
     let id = e.dataTransfer.getData("joukkuedata");
     if (id.length !== 0) {
@@ -183,18 +216,20 @@ function luoDragDrop(mymap, layerGroup) {
       el.style.top = null;
       el.style.left = null;
 
-      jLista.appendChild(el);
       for (let i = 0; i < layerGroup.length; i++) {
         if (layerGroup[i].id === id) {
           layerGroup[i].remove(mymap);
           layerGroup.splice(i, 1);
         }
       }
+      if (onLi) {
+        return;
+      }
+      jLista.appendChild(el);
     }
   });
 
   rastidrop.addEventListener("drop", function (e) {
-    let rLista = document.getElementById("rastilista");
     e.preventDefault();
     let data = e.dataTransfer.getData("rastidata");
     if (data.length !== 0) {
@@ -203,6 +238,9 @@ function luoDragDrop(mymap, layerGroup) {
       el.style.position = null;
       el.style.top = null;
       el.style.left = null;
+      if (onLi) {
+        return;
+      }
       rLista.appendChild(el);
     }
   });
@@ -211,6 +249,7 @@ function luoDragDrop(mymap, layerGroup) {
 function luoDrag(element) {
   element.addEventListener("dragover", function (e) {
     e.preventDefault();
+    onLi = false;
     // Set the dropEffect to move
     e.dataTransfer.dropEffect = "move";
   });
