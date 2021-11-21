@@ -29,12 +29,17 @@ $(document).ready(function () {
     // Set the dropEffect to move
     e.dataTransfer.dropEffect = "move";
   });
+  let left;
+  let top;
 
   drop.addEventListener("drop", function (e) {
     e.preventDefault();
-
-    var data = e.dataTransfer.getData("text");
+    let position = $(this).position();
+    let data = e.dataTransfer.getData("text");
     // lisätään tämän elementin sisään
     e.target.appendChild(document.getElementById(data));
+    left = position[1];
+    top = position[0];
+    e.target.css({ top: top, left: left, position: absolute });
   });
 });

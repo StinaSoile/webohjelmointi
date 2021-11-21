@@ -3,35 +3,42 @@
 /* jshint jquery: true */
 /* globals L */
 
+import { xxx, kissa } from "./test.js";
+
 window.onload = function () {
+  console.log(
+    kissa({
+      a: "aaaa",
+      b: "aaaa",
+      c: "aaaa",
+      d: "aaaa",
+      f: "aaaa",
+      e: "aaaa",
+    })
+  );
   console.log(data);
   let layerGroup = []; // tallennetaan tänne polylinet kartalta nini että ne voi hakea id:n perusteella
   let mymap = luoKartta();
   luoJoukkueLista();
+  lisaaJoukkueidenMatkat();
   luoRastiLista();
   luoDragDrop(mymap, layerGroup);
   let bounds = piirraRastit(mymap);
   $(window).resize(function () {
     mymap.fitBounds(bounds);
   });
-  //nappi johon voi sijoittaa testattavia juttuja:
-  document
-    .getElementById("button")
-    .addEventListener("click", () => zoom(mymap));
 }; //onload -funktion loppu, huomaa
 
 let onLi = false; //muuttuja, joka asetetaan trueksi,
 // kun raahataan jotain toisen li-elementin päälle.
 // tätä käytetään joukkueiden ja rastien raahauksessa siihen, että tiedetään,
 // pudotetaanko raahattava juttu listan sekaan vai perään
-function zoom(mymap) {
-  console.log(mymap);
-}
 
 function piirraRastit(mymap) {
   let lonArr = [];
   let latArr = [];
-  for (const rasti of data.rastit) {
+  for (let i = 0; i < data.rastit.length; i++) {
+    let rasti = data.rastit[i];
     let lat = rasti.lat;
     let lon = rasti.lon;
     let circle = L.circle([lat, lon], {
@@ -39,6 +46,23 @@ function piirraRastit(mymap) {
       fillOpacity: 0.0,
       radius: 150,
     }).addTo(mymap);
+    circle.addEventListener("click", function (e) {
+      console.log("klikattu");
+      let marker = L.marker([lat, lon], { draggable: "true" }).addTo(mymap);
+      let koord = marker.on("dragend", function (e) {
+        koord = siirraYmpyraa(e.target, circle);
+        console.log(koord.lat + " " + koord.lng);
+        rasti.lat = koord.lat.toString();
+        rasti.lon = koord.lng.toString();
+        lisaaJoukkueidenMatkat();
+        circle.setStyle({ fillOpacity: 0 });
+        e.target.remove();
+      });
+      e.target.setStyle({ fillOpacity: 1 });
+      // draggable
+      // ulkoasun muutos, markeri
+      // muualta marker pois ja ulkoasu normaaliksi
+    });
     lonArr.push(lon);
     latArr.push(lat);
   }
@@ -57,6 +81,13 @@ function piirraRastit(mymap) {
   return bounds;
 }
 
+function siirraYmpyraa(marker, circle) {
+  let koord = marker.getLatLng();
+  circle.setLatLng(koord);
+  console.log(circle + ", " + koord);
+  return koord;
+}
+
 function haeJoukkue(i) {
   let j;
   for (const joukkue of data.joukkueet) {
@@ -65,6 +96,40 @@ function haeJoukkue(i) {
     }
   }
   return j;
+}
+
+// luo jokaisen joukkueen perään sen kulkeman matkan (km) li-elementtiin
+function lisaaJoukkueidenMatkat() {
+  for (const joukkue of data.joukkueet) {
+    let dist = haeMatka(joukkue);
+    kirjoitaMatka(joukkue, dist);
+  }
+}
+
+// laskee yhden joukkueen kulkeman matkan ja palauttaa sen kilometreinä
+function haeMatka(joukkue) {
+  let arr = haeRastit(joukkue);
+  let dist = 0;
+  for (let i = 0; i < arr.length - 1; i++) {
+    let lat1 = arr[i].lat;
+    let lon1 = arr[i].lon;
+    let lat2 = arr[i + 1].lat;
+    let lon2 = arr[i + 1].lon;
+    dist = dist + getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2);
+  }
+  return dist;
+}
+
+function kirjoitaMatka(joukkue, dist) {
+  let el = document.getElementById("id" + joukkue.id);
+  el.textContent = `${joukkue.nimi.trim()}, (${dist.toFixed(1)} km)`;
+  // console.log(joukkue.nimi + ", " + dist + " km");
+  // console.log("--------------");
+
+  // ("joukkue_328738273");
+  // etsi joukkueen id:tä vastaava li
+  // poista jos on aiempi matka
+  // lisää sihen dist + " km"
 }
 
 /**
@@ -110,6 +175,28 @@ function haeRastit(joukkue) {
     }
   }
   return arr;
+}
+
+// funktio laskeen kahden pisteen etäisyyden, kopioitu allaolevalta sivulta 20.11.2021:
+// https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  let R = 6371; // Radius of the earth in km
+  let dLat = deg2rad(lat2 - lat1); // deg2rad below
+  let dLon = deg2rad(lon2 - lon1);
+  let a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  let d = R * c; // Distance in km
+  return d;
+}
+
+// tätä käytetään funktiossa getDistanceFromLatLonInKm, kopioitu samalta visulta kuin se
+function deg2rad(deg) {
+  return deg * (Math.PI / 180);
 }
 
 function piirraJoukkueenMatka(id, mymap, layerGroup) {
@@ -187,9 +274,9 @@ function luoDragDrop(mymap, layerGroup) {
       onLi = true;
       let id = e.dataTransfer.getData("joukkuedata");
       const el = document.getElementById(id);
-      let all = Array.from(jLista.children);
-      let index = all.indexOf(li) - 1;
-      $("#joukkuelista li:eq(" + index + ")").after(el);
+      if (el) {
+        li.before(el);
+      }
     });
   }
 
@@ -200,9 +287,9 @@ function luoDragDrop(mymap, layerGroup) {
       onLi = true;
       let id = e.dataTransfer.getData("rastidata");
       const el = document.getElementById(id);
-      let all = Array.from(rLista.children);
-      let index = all.indexOf(li) - 1;
-      $("#rastilista li:eq(" + index + ")").after(el);
+      if (el) {
+        li.before(el);
+      }
     });
   }
 
@@ -216,6 +303,7 @@ function luoDragDrop(mymap, layerGroup) {
       el.style.top = null;
       el.style.left = null;
 
+      // alla koodi joka poistaa joukkueen matkan polylinen kartalta. Tee omaksi funktioksi
       for (let i = 0; i < layerGroup.length; i++) {
         if (layerGroup[i].id === id) {
           layerGroup[i].remove(mymap);
