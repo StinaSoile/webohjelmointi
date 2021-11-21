@@ -3,21 +3,10 @@
 /* jshint jquery: true */
 /* globals L */
 
-import { xxx, kissa } from "./test.js";
+import { eiYliOikeanLaidan, eiYliAlaLaidan } from "./helpers.js";
 
 window.onload = function () {
-  console.log(
-    kissa({
-      a: "aaaa",
-      b: "aaaa",
-      c: "aaaa",
-      d: "aaaa",
-      f: "aaaa",
-      e: "aaaa",
-    })
-  );
   console.log(data);
-  let layerGroup = []; // tallennetaan tänne polylinet kartalta nini että ne voi hakea id:n perusteella
   let mymap = luoKartta();
   luoJoukkueLista();
   lisaaJoukkueidenMatkat();
@@ -28,11 +17,14 @@ window.onload = function () {
     mymap.fitBounds(bounds);
   });
 }; //onload -funktion loppu, huomaa
-
+let layerGroup = []; // tallennetaan tänne polylinet kartalta nini että ne voi hakea id:n perusteella
 let onLi = false; //muuttuja, joka asetetaan trueksi,
 // kun raahataan jotain toisen li-elementin päälle.
 // tätä käytetään joukkueiden ja rastien raahauksessa siihen, että tiedetään,
 // pudotetaanko raahattava juttu listan sekaan vai perään
+
+let currentMarker;
+let currentCircle;
 
 function piirraRastit(mymap) {
   let lonArr = [];
@@ -41,24 +33,58 @@ function piirraRastit(mymap) {
     let rasti = data.rastit[i];
     let lat = rasti.lat;
     let lon = rasti.lon;
+
+    // let koord1 = e.target.getLatLng();
+    // console.log(koord1);
+
     let circle = L.circle([lat, lon], {
       color: "red",
       fillOpacity: 0.0,
       radius: 150,
-    }).addTo(mymap);
+    })
+      .bindTooltip(rasti.koodi)
+      .openTooltip()
+      .addTo(mymap);
+
     circle.addEventListener("click", function (e) {
-      console.log("klikattu");
-      let marker = L.marker([lat, lon], { draggable: "true" }).addTo(mymap);
+      let newKoord = circle.getLatLng();
+      let marker = L.marker([newKoord.lat, newKoord.lng], {
+        draggable: "true",
+        // opacity: 0.0,
+      }).addTo(mymap);
+
+      // markkerin poisto
+      if (currentMarker) {
+        currentMarker.remove(mymap);
+        currentCircle.setStyle({ fillOpacity: 0 });
+      }
+      currentCircle = circle;
+      currentMarker = marker;
+      circle.setStyle({ fillOpacity: 1 }); // color red
+
+      // marker.setStyle({ opacity: 1 });
+      // marker.draggable = true;
+
       let koord = marker.on("dragend", function (e) {
         koord = siirraYmpyraa(e.target, circle);
         console.log(koord.lat + " " + koord.lng);
         rasti.lat = koord.lat.toString();
         rasti.lon = koord.lng.toString();
         lisaaJoukkueidenMatkat();
+        let joukkueet = document.querySelectorAll("#keskilista li");
+        console.log("joukkueet", joukkueet);
+        for (const joukkue of joukkueet) {
+          console.log(joukkue.id);
+          poistaJoukkueenReittiKartalta(joukkue.id, mymap);
+          piirraJoukkueenMatka(joukkue.id, mymap, layerGroup);
+        }
+
+        // tässä kerätään kaikki joukkueet jotka on Kartalla, ja piirretään niiden matkat uudelleen.
+        // ei jotenkin vielä toimi, lets see
+        // console.log(joukkueet);
         circle.setStyle({ fillOpacity: 0 });
-        e.target.remove();
+        marker.remove(mymap);
       });
-      e.target.setStyle({ fillOpacity: 1 });
       // draggable
       // ulkoasun muutos, markeri
       // muualta marker pois ja ulkoasu normaaliksi
@@ -143,14 +169,14 @@ function haeRastit(joukkue) {
   let arr = [];
   let kayty = {};
   let alku = false;
-  let lahtoId;
-  let maaliId;
+  let lahto;
+  let maali;
   for (const d of data.rastit) {
     if (d.koodi === "LAHTO") {
-      lahtoId = d.id;
+      lahto = d;
     }
     if (d.koodi === "MAALI") {
-      maaliId = d.id;
+      maali = d;
     }
   }
   for (const r of joukkue.rastit) {
@@ -158,10 +184,11 @@ function haeRastit(joukkue) {
 
     if (typeof r === "object") {
       //varmistetaan, että rasti on objekti eikä jotain outoa
-      if (r.rasti === lahtoId) {
-        arr = [];
+      if (r.rasti === lahto.id) {
+        arr = [lahto];
         alku = true;
-      } else if (r.rasti === maaliId && alku) {
+      } else if (r.rasti === maali.id && alku) {
+        arr.push(maali);
         return arr;
       } else {
         for (const d of data.rastit) {
@@ -199,6 +226,8 @@ function deg2rad(deg) {
   return deg * (Math.PI / 180);
 }
 
+// piirtää joukkueen kulkeman matkan, id on li-attríbuutin id, muotoa "id" + joukkueobjektin id
+// mymap on map, layerGroup on array johon tallennetaan kartalla olevat polylinet, niin että ne voi poistaa helposti
 function piirraJoukkueenMatka(id, mymap, layerGroup) {
   const joukkue = haeJoukkue(id);
   const rastiArr = haeRastit(joukkue); // tämä on nyt lista rastiobjekteista
@@ -212,9 +241,10 @@ function piirraJoukkueenMatka(id, mymap, layerGroup) {
   layerGroup.push(line);
 }
 
-const ps = {};
+const prosentitX = {};
+const prosentitY = {};
 
-function luoDragDrop(mymap, layerGroup) {
+function luoDragDrop(mymap) {
   let drop = document.getElementById("keskilista");
   let joukkuedrop = document.getElementById("joukkueet");
   let rastidrop = document.getElementById("rastit");
@@ -224,9 +254,14 @@ function luoDragDrop(mymap, layerGroup) {
   window.onresize = function (e) {
     const lis = drop.getElementsByTagName("li");
     const dropLeft = drop.getBoundingClientRect().left;
+    const dropTop = drop.getBoundingClientRect().top;
     for (const l of lis) {
-      const a = drop.getBoundingClientRect().right - dropLeft;
-      l.style.left = a * ps[l.id] + "px";
+      const dropWidth = drop.getBoundingClientRect().right - dropLeft;
+      const dropHeight = drop.getBoundingClientRect().bottom - dropTop;
+      l.style.left = dropWidth * prosentitX[l.id] + "px";
+      l.style.top = dropHeight * prosentitY[l.id] + "px";
+      eiYliOikeanLaidan(l, drop);
+      eiYliAlaLaidan(l, drop);
     }
   };
 
@@ -248,7 +283,7 @@ function luoDragDrop(mymap, layerGroup) {
     }
     if (el) {
       drop.append(el);
-      ps[el.id] = el.style.position = "absolute";
+      el.style.position = "absolute";
       el.style.top =
         // -el.offsetHeight / 2
         -drop.getBoundingClientRect().top + e.clientY + "px";
@@ -258,12 +293,17 @@ function luoDragDrop(mymap, layerGroup) {
         -drop.getBoundingClientRect().left + e.clientX + "px";
 
       const dropLeft = drop.getBoundingClientRect().left;
-      // const dropTop = drop.getBoundingClientRect().top;
+      const dropTop = drop.getBoundingClientRect().top;
 
-      const prevX = el.getBoundingClientRect().left;
-      const a = drop.getBoundingClientRect().right - dropLeft;
-      const b = prevX - dropLeft;
-      const p = b / a;
+      const dropWidth = drop.getBoundingClientRect().right - dropLeft;
+      const dropHeight = drop.getBoundingClientRect().bottom - dropTop;
+      const suhtX = el.getBoundingClientRect().left - dropLeft;
+      const suhtY = el.getBoundingClientRect().top - dropTop;
+      prosentitX[el.id] = suhtX / dropWidth;
+      prosentitY[el.id] = suhtY / dropHeight;
+
+      eiYliOikeanLaidan(el, drop);
+      eiYliAlaLaidan(el, drop);
     }
   };
 
@@ -304,12 +344,7 @@ function luoDragDrop(mymap, layerGroup) {
       el.style.left = null;
 
       // alla koodi joka poistaa joukkueen matkan polylinen kartalta. Tee omaksi funktioksi
-      for (let i = 0; i < layerGroup.length; i++) {
-        if (layerGroup[i].id === id) {
-          layerGroup[i].remove(mymap);
-          layerGroup.splice(i, 1);
-        }
-      }
+      poistaJoukkueenReittiKartalta(id, mymap);
       if (onLi) {
         return;
       }
@@ -332,6 +367,15 @@ function luoDragDrop(mymap, layerGroup) {
       rLista.appendChild(el);
     }
   });
+}
+
+function poistaJoukkueenReittiKartalta(id, mymap) {
+  for (let i = 0; i < layerGroup.length; i++) {
+    if (layerGroup[i].id === id) {
+      layerGroup[i].remove(mymap);
+      layerGroup.splice(i, 1);
+    }
+  }
 }
 
 function luoDrag(element) {

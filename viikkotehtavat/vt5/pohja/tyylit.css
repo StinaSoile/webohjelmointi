@@ -41,6 +41,10 @@ li {
   height: 100%;
 }
 
+#keskilista li {
+  white-space: nowrap;
+}
+
 h2 {
   text-align: center;
 }
