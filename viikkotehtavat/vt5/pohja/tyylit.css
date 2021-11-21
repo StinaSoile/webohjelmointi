@@ -4,6 +4,14 @@ body {
   padding: 0;
 }
 
+.leaflet-tooltip {
+  color: blue;
+  box-shadow: none;
+  background-color: rgba(0, 0, 255, 0);
+  border: none;
+  font-weight: bold;
+}
+
 #alaosa {
   /* height: 180px; */
   display: grid;

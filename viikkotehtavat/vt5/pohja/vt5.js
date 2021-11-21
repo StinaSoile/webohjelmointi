@@ -42,8 +42,12 @@ function piirraRastit(mymap) {
       fillOpacity: 0.0,
       radius: 150,
     })
-      .bindTooltip(rasti.koodi)
+      .bindTooltip(rasti.koodi, {
+        permanent: true,
+        direction: "center",
+      })
       .openTooltip()
+      // .bindLabel('some text', { noHide: true })
       .addTo(mymap);
 
     circle.addEventListener("click", function (e) {
