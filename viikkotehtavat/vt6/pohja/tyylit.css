@@ -1,0 +1,77 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+/* h1 {
+  margin: 0.5em;
+} */
+
+/* #container {
+  display: flexbox;
+  flex-direction: column;
+  margin: 1em;
+} */
+
+#joukkue {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  max-width: 40em;
+  margin-top: 2%;
+  padding: 3%;
+}
+/* 
+.form label {
+  display: block;
+} */
+
+.form label,
+.form input[type="text"],
+.form p {
+  /* margin-top: 1%; */
+  margin-bottom: 2em;
+}
+.form input[type="radio"],
+.sarjat > label,
+.form input[type="checkbox"],
+.leimat label {
+  margin-bottom: 0;
+  margin-left: auto;
+  margin-right: 0;
+}
+.form input[type="radio"],
+.form input[type="checkbox"] {
+  margin-left: 1em;
+}
+
+.sarjat,
+.leimat {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1em;
+}
+
+button {
+  width: 5em;
+  height: auto;
+  margin: 0em 2%;
+}
+
+#joukkueet {
+  /* display: flex;
+  flex-direction: column;
+  align-items: center; */
+  margin-left: 4em;
+  margin-top: 2em;
+}
+
+#joukkuelista {
+  margin-top: 2em;
+}
+
+#joukkuelista > li {
+  margin-top: 1em;
+}
+
+#joukkuelista > li > ul > li {
+  margin-left: 3em;
+}

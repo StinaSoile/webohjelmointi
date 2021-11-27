@@ -3,8 +3,6 @@
 /* jshint jquery: true */
 /* globals L */
 
-import { eiYliOikeanLaidan, eiYliAlaLaidan } from "./helpers.js";
-
 window.onload = function () {
   console.log(data);
   let mymap = luoKartta();
@@ -17,11 +15,10 @@ window.onload = function () {
     mymap.fitBounds(bounds);
   });
 }; //onload -funktion loppu, huomaa
+
 let layerGroup = []; // tallennetaan tänne polylinet kartalta nini että ne voi hakea id:n perusteella
 let onLi = false; //muuttuja, joka asetetaan trueksi,
 // kun raahataan jotain toisen li-elementin päälle.
-// tätä käytetään joukkueiden ja rastien raahauksessa siihen, että tiedetään,
-// pudotetaanko raahattava juttu listan sekaan vai perään
 
 let currentMarker;
 let currentCircle;
@@ -33,9 +30,6 @@ function piirraRastit(mymap) {
     let rasti = data.rastit[i];
     let lat = rasti.lat;
     let lon = rasti.lon;
-
-    // let koord1 = e.target.getLatLng();
-    // console.log(koord1);
 
     let circle = L.circle([lat, lon], {
       color: "red",
@@ -71,21 +65,16 @@ function piirraRastit(mymap) {
 
       let koord = marker.on("dragend", function (e) {
         koord = siirraYmpyraa(e.target, circle);
-        console.log(koord.lat + " " + koord.lng);
         rasti.lat = koord.lat.toString();
         rasti.lon = koord.lng.toString();
         lisaaJoukkueidenMatkat();
-        let joukkueet = document.querySelectorAll("#keskilista li");
-        console.log("joukkueet", joukkueet);
+        let joukkueet = document.querySelectorAll("#keskilista .joukkue");
         for (const joukkue of joukkueet) {
-          console.log(joukkue.id);
           poistaJoukkueenReittiKartalta(joukkue.id, mymap);
           piirraJoukkueenMatka(joukkue.id, mymap, layerGroup);
         }
 
         // tässä kerätään kaikki joukkueet jotka on Kartalla, ja piirretään niiden matkat uudelleen.
-        // ei jotenkin vielä toimi, lets see
-        // console.log(joukkueet);
         circle.setStyle({ fillOpacity: 0 });
         marker.remove(mymap);
       });
@@ -104,17 +93,13 @@ function piirraRastit(mymap) {
   let corner2 = L.latLng(maxlat, maxlon);
   let bounds = L.latLngBounds(corner1, corner2);
   mymap.fitBounds(bounds);
-  // mymap.fitBounds([
-  //   [minlat, minlon],
-  //   [maxlat, maxlon],
-  // ]);
+
   return bounds;
 }
 
 function siirraYmpyraa(marker, circle) {
   let koord = marker.getLatLng();
   circle.setLatLng(koord);
-  console.log(circle + ", " + koord);
   return koord;
 }
 
@@ -153,10 +138,7 @@ function haeMatka(joukkue) {
 function kirjoitaMatka(joukkue, dist) {
   let el = document.getElementById("id" + joukkue.id);
   el.textContent = `${joukkue.nimi.trim()}, (${dist.toFixed(1)} km)`;
-  // console.log(joukkue.nimi + ", " + dist + " km");
-  // console.log("--------------");
 
-  // ("joukkue_328738273");
   // etsi joukkueen id:tä vastaava li
   // poista jos on aiempi matka
   // lisää sihen dist + " km"
@@ -317,9 +299,11 @@ function luoDragDrop(mymap) {
       e.preventDefault();
       onLi = true;
       let id = e.dataTransfer.getData("joukkuedata");
-      const el = document.getElementById(id);
-      if (el) {
-        li.before(el);
+      if (id.length !== 0) {
+        const el = document.getElementById(id);
+        if (el) {
+          li.before(el);
+        }
       }
     });
   }
@@ -330,9 +314,11 @@ function luoDragDrop(mymap) {
       e.preventDefault();
       onLi = true;
       let id = e.dataTransfer.getData("rastidata");
-      const el = document.getElementById(id);
-      if (el) {
-        li.before(el);
+      if (id.length !== 0) {
+        const el = document.getElementById(id);
+        if (el) {
+          li.before(el);
+        }
       }
     });
   }
@@ -371,6 +357,30 @@ function luoDragDrop(mymap) {
       rLista.appendChild(el);
     }
   });
+}
+
+function eiYliOikeanLaidan(what, where) {
+  if (
+    what.getBoundingClientRect().right > where.getBoundingClientRect().right
+  ) {
+    const w =
+      what.getBoundingClientRect().right - what.getBoundingClientRect().left;
+    const a =
+      where.getBoundingClientRect().right - where.getBoundingClientRect().left;
+    what.style.left = a - w + "px";
+  }
+}
+
+function eiYliAlaLaidan(what, where) {
+  if (
+    what.getBoundingClientRect().bottom > where.getBoundingClientRect().bottom
+  ) {
+    const h =
+      what.getBoundingClientRect().bottom - what.getBoundingClientRect().top;
+    const a =
+      where.getBoundingClientRect().bottom - where.getBoundingClientRect().top;
+    what.style.top = a - h + "px";
+  }
 }
 
 function poistaJoukkueenReittiKartalta(id, mymap) {
@@ -512,6 +522,7 @@ function tulostaJoukkue(joukkue, i, length) {
   const li = document.createElement("li");
   li.textContent = joukkue.nimi.trim();
   li.setAttribute("id", "id" + joukkue.id);
+  li.setAttribute("class", "joukkue");
   li.setAttribute("draggable", "true");
   li.addEventListener("dragstart", function (e) {
     // raahataan datana elementin id-attribuutin arvo
