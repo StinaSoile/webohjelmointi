@@ -73,7 +73,17 @@ class App extends React.PureComponent {
   }
 
   handleJoukkueenLisays = (uusi) => {
-    console.log(uusi);
+    // console.log(uusi);
+    console.log(
+      "Joukkueen nimi: " +
+        uusi.nimi +
+        "\nJoukkueen jäsenet: " +
+        uusi.jasenet +
+        "\nJoukkueen leimaustavat: " +
+        uusi.leimat +
+        "\nJoukkueen sarja: " +
+        uusi.sarja.nimi
+    );
   };
 
   render() {
@@ -84,6 +94,7 @@ class App extends React.PureComponent {
         <LisaaJoukkue
           leimat={this.state.kilpailu.leimaustavat}
           sarjat={this.state.kilpailu.sarjat}
+          handleJoukkueenLisays={this.handleJoukkueenLisays}
         />
         <ListaaJoukkueet joukkueet={this.state.kilpailu.joukkueet} />
       </div>
@@ -111,10 +122,16 @@ class LisaaJoukkue extends React.PureComponent {
   }
 
   nimiHandler(e) {
+    e.target.setCustomValidity("");
     this.setState({ nimi: e.target.value });
+    if (e.target.value.trim() === "") {
+      e.target.setCustomValidity("Joukkueella täytyy olla nimi");
+    }
   }
 
   jasenHandler(e, i) {
+    e.target.setCustomValidity("");
+
     let jasenet = this.state.jasenet.slice();
     jasenet[i] = e.target.value;
 
@@ -135,27 +152,75 @@ class LisaaJoukkue extends React.PureComponent {
   }
 
   leimaHandler(e, i) {
+    e.target.setCustomValidity("");
+
     let leimat = this.state.leimat.slice();
     leimat[i] = !leimat[i];
     this.setState({ leimat });
+    for (const leima of leimat) {
+      if (leima === true) {
+        e.target.setCustomValidity("");
+      }
+    }
   }
 
   sarjaHandler(e, i) {
+    e.target.setCustomValidity("");
+
     this.setState({ sarja: i });
   }
 
   handleSubmit(e) {
     e.preventDefault();
-    console.log("submit: ");
-    console.log(
-      this.state.nimi +
-        ", " +
-        this.state.jasenet +
-        ", " +
-        this.state.leimat +
-        ", " +
-        this.state.sarja
-    );
+
+    // luodaan array jossa on listaus valituista leimoista.
+    let arr = [];
+    for (let i = 0; i < this.state.leimat.length; i++) {
+      if (this.state.leimat[i]) {
+        arr.push(i);
+      }
+    }
+    // luodaan objekti jossa on uuden joukkueen tiedot.
+    // Tästä luodaan uusi joukkue jos validoinnit menee läpi.
+    const uusiJoukkue = {
+      nimi: this.state.nimi.trim(),
+      jasenet: this.state.jasenet.filter((x) => x.trim() !== ""),
+      leimat: arr,
+      sarja: this.props.sarjat[this.state.sarja],
+    };
+
+    // tehdään validoinnit leimoille ja jäsenille.
+    //(joukkueen nimelle tehdään jo nimiHandlerissa)
+
+    //jos leimaustapoja ei ole valittuna, valitetaan
+    if (uusiJoukkue.leimat.length === 0) {
+      e.target.elements.leima[0].setCustomValidity(
+        "Joukkueella on oltava vähintään yksi leimaustapa."
+      );
+      e.target.elements.leima[0].reportValidity();
+    }
+    // tsekataan onko jäseniä 2-5 kpl
+    else if (uusiJoukkue.jasenet.length < 2 || uusiJoukkue.jasenet.length > 5) {
+      for (const jasen of e.target.elements.jasen) {
+        if (jasen.value.trim() === "") {
+          jasen.setCustomValidity("Joukkueella täytyy olla 2-5 jäsentä.");
+          jasen.reportValidity();
+          return;
+        }
+      }
+    } else {
+      this.props.handleJoukkueenLisays(uusiJoukkue);
+    }
+    // console.log("submit: ");
+    // console.log(
+    //   this.state.nimi +
+    //     ", " +
+    //     this.state.jasenet +
+    //     ", " +
+    //     this.state.leimat +
+    //     ", " +
+    //     this.state.sarja
+    // );
   }
 
   render() {
@@ -252,6 +317,7 @@ class Jasenet extends React.PureComponent {
             type="text"
             id={"jasen" + i}
             value={j}
+            name="jasen"
             onChange={(e) => this.props.jasenHandler(e, i)}
           />
         </div>
