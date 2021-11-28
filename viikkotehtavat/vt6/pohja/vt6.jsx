@@ -72,6 +72,10 @@ class App extends React.PureComponent {
     return;
   }
 
+  handleJoukkueenLisays = (uusi) => {
+    console.log(uusi);
+  };
+
   render() {
     // jshint ei ymmärrä jsx-syntaksia
     /* jshint ignore:start */
@@ -91,9 +95,11 @@ class App extends React.PureComponent {
 class LisaaJoukkue extends React.PureComponent {
   constructor(props) {
     super(props);
+
     this.state = {
       nimi: "",
       jasenet: ["", ""],
+
       leimat: Array(this.props.leimat.length).fill(false),
       sarja: 0,
     };
@@ -101,6 +107,7 @@ class LisaaJoukkue extends React.PureComponent {
     this.jasenHandler = this.jasenHandler.bind(this);
     this.leimaHandler = this.leimaHandler.bind(this);
     this.sarjaHandler = this.sarjaHandler.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   nimiHandler(e) {
@@ -137,6 +144,20 @@ class LisaaJoukkue extends React.PureComponent {
     this.setState({ sarja: i });
   }
 
+  handleSubmit(e) {
+    e.preventDefault();
+    console.log("submit: ");
+    console.log(
+      this.state.nimi +
+        ", " +
+        this.state.jasenet +
+        ", " +
+        this.state.leimat +
+        ", " +
+        this.state.sarja
+    );
+  }
+
   render() {
     /* jshint ignore:start */
     return (
@@ -153,6 +174,7 @@ class LisaaJoukkue extends React.PureComponent {
           jasenet={this.state.jasenet}
           jasenHandler={this.jasenHandler}
         />
+        <button type="submit">Tallenna</button>
       </form>
     );
     /* jshint ignore:end */
@@ -251,13 +273,34 @@ class ListaaJoukkueet extends React.PureComponent {
   constructor(props) {
     super(props);
   }
+
   render() {
+    const joukkueet = this.props.joukkueet.slice();
+    const jarjestaJoukkueet = joukkueet.sort((a, b) => {
+      if (a.nimi.trim().toLowerCase() < b.nimi.trim().toLowerCase()) {
+        return -1;
+      }
+      if (a.nimi.trim().toLowerCase() > b.nimi.trim().toLowerCase()) {
+        return 1;
+      }
+      return 0;
+    });
+
+    // for (let i = 0; i < joukkuelista.length; i++) {
+    //   tulostaJoukkue(joukkuelista[i]);
+    // }
+
+    const joukkuelista = jarjestaJoukkueet.map((j) => {
+      return <li key={j.id}>{j.nimi}</li>;
+    });
+
     /* jshint ignore:start */
     return (
       <ul>
-        {this.props.joukkueet.map((j) => {
+        {joukkuelista}
+        {/* {this.props.joukkueet.map((j) => {
           return <li key={j.id}>{j.nimi}</li>;
-        })}
+        })} */}
       </ul>
     );
     /* jshint ignore:end */
