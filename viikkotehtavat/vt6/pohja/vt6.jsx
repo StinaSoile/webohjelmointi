@@ -69,11 +69,45 @@ class App extends React.PureComponent {
 
     this.state = { kilpailu: data };
     console.log(this.state);
+    /**
+     * //KOPIOITU VT1:stä
+     * hakee annetun joukkueen merkitsevät rastit.
+     * TODO: viimeinen lahto ja eka maali, vt1/vt2
+     * @param {Object} joukkue
+     * @returns Array, johon on tallennettu koodit niistä joukkueen rasteista, jotka huomioidaan
+     */
     return;
   }
 
+  getMaxId = (arr) => {
+    let maxId = 0;
+    for (const j of arr) {
+      if (j.id > maxId) {
+        maxId = j.id;
+      }
+    }
+    return maxId;
+  };
+
   handleJoukkueenLisays = (uusi) => {
-    // console.log(uusi);
+    const id = this.getMaxId(this.state.kilpailu.joukkueet) + 1;
+    const newJoukkue = {
+      nimi: uusi.nimi,
+      jasenet: uusi.jasenet,
+      rastit: [],
+      leimaustapa: uusi.leimat,
+      sarja: uusi.sarja.id,
+      id: id,
+    };
+
+    this.setState({
+      kilpailu: {
+        ...this.state.kilpailu,
+        joukkueet: [...this.state.kilpailu.joukkueet, newJoukkue],
+      },
+    });
+
+    // testituloste, poistetaan lopuksi
     console.log(
       "Joukkueen nimi: " +
         uusi.nimi +
@@ -141,7 +175,10 @@ class LisaaJoukkue extends React.PureComponent {
         tyhjienIndeksit.push(i);
       }
     }
-    if (tyhjienIndeksit.length === 0) {
+    // tässä rajataan jäsenkentät vain viiteen.
+    // Jos jasenet.length < 5 ottaa pois, jäsenkenttien määrällä ei ole ylärajaa.
+    // olen kuitenkin vielä validoinnissa rajannut ettei voisi lisätä yli 5 hlöä vaikka tuon ottaisi pois.
+    if (tyhjienIndeksit.length === 0 && jasenet.length < 5) {
       jasenet.push("");
     } else if (tyhjienIndeksit.length > 1 && jasenet.length > 2) {
       console.log("tyhjien indeksit: " + tyhjienIndeksit);
@@ -211,16 +248,6 @@ class LisaaJoukkue extends React.PureComponent {
     } else {
       this.props.handleJoukkueenLisays(uusiJoukkue);
     }
-    // console.log("submit: ");
-    // console.log(
-    //   this.state.nimi +
-    //     ", " +
-    //     this.state.jasenet +
-    //     ", " +
-    //     this.state.leimat +
-    //     ", " +
-    //     this.state.sarja
-    // );
   }
 
   render() {
@@ -340,6 +367,19 @@ class ListaaJoukkueet extends React.PureComponent {
     super(props);
   }
 
+  joukkueenJasenet(id) {
+    let lista = [];
+    for (const joukkue of this.props.joukkueet) {
+      if (id === joukkue.id) {
+        lista = joukkue.jasenet;
+        break;
+      }
+    }
+    return lista.map((j) => {
+      return <li key={(id, j)}>{j}</li>;
+    });
+  }
+
   render() {
     const joukkueet = this.props.joukkueet.slice();
     const jarjestaJoukkueet = joukkueet.sort((a, b) => {
@@ -357,12 +397,17 @@ class ListaaJoukkueet extends React.PureComponent {
     // }
 
     const joukkuelista = jarjestaJoukkueet.map((j) => {
-      return <li key={j.id}>{j.nimi}</li>;
+      return (
+        <li key={j.id}>
+          {j.nimi}
+          <ul>{this.joukkueenJasenet(j.id)}</ul>
+        </li>
+      );
     });
 
     /* jshint ignore:start */
     return (
-      <ul>
+      <ul id="joukkuelista">
         {joukkuelista}
         {/* {this.props.joukkueet.map((j) => {
           return <li key={j.id}>{j.nimi}</li>;
