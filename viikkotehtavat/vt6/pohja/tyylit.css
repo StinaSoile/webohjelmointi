@@ -12,9 +12,26 @@
   margin: 1em;
 } */
 
+.grid {
+  display: grid;
+  grid-template-columns: 60% 40%;
+}
+
+.jasen {
+  display: grid;
+  grid-template-columns: 50% 50%;
+  /* grid-template-rows: 12px 12px 12px; */
+}
+
 #joukkue {
   display: grid;
   grid-template-columns: 60% 40%;
+  max-width: 40em;
+  margin-top: 2%;
+  padding: 3%;
+}
+
+#jasenet {
   max-width: 40em;
   margin-top: 2%;
   padding: 3%;
@@ -55,6 +72,25 @@ button {
   height: auto;
   margin: 0em 2%;
 }
+.form {
+  grid-column: 1/2;
+}
+
+.joukkuelista {
+  grid-column: 2/3;
+  margin-top: 2em;
+}
+
+.joukkuelista > li {
+  margin-top: 1em;
+  margin-left: 2em;
+}
+
+.joukkuelista > li > ul > li {
+  margin-left: 3em;
+}
+
+/* Näitä ei mielestäni käytetä missään, tarkista vielä: */
 
 #joukkueet {
   /* display: flex;
@@ -62,16 +98,4 @@ button {
   align-items: center; */
   margin-left: 4em;
   margin-top: 2em;
-}
-
-#joukkuelista {
-  margin-top: 2em;
-}
-
-#joukkuelista > li {
-  margin-top: 1em;
-}
-
-#joukkuelista > li > ul > li {
-  margin-left: 3em;
 }

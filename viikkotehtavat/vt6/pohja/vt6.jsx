@@ -124,13 +124,17 @@ class App extends React.PureComponent {
     // jshint ei ymmärrä jsx-syntaksia
     /* jshint ignore:start */
     return (
-      <div>
+      <div className="grid">
         <LisaaJoukkue
           leimat={this.state.kilpailu.leimaustavat}
           sarjat={this.state.kilpailu.sarjat}
           handleJoukkueenLisays={this.handleJoukkueenLisays}
         />
-        <ListaaJoukkueet joukkueet={this.state.kilpailu.joukkueet} />
+        <ListaaJoukkueet
+          joukkueet={this.state.kilpailu.joukkueet}
+          sarjat={this.state.kilpailu.sarjat}
+          leimat={this.state.kilpailu.leimaustavat}
+        />
       </div>
     );
     /* jshint ignore:end */
@@ -338,7 +342,7 @@ class Jasenet extends React.PureComponent {
 
     const jasenet = this.props.jasenet.map((j, i) => {
       return (
-        <div key={i}>
+        <div className="jasen" key={i}>
           <label htmlFor={"jasen" + i}>Jäsen {i + 1}</label>
           <input
             type="text"
@@ -351,11 +355,9 @@ class Jasenet extends React.PureComponent {
       );
     });
     return (
-      <fieldset>
+      <fieldset id="jasenet">
         <legend>Jäsenet</legend>
         {jasenet}
-        {/* <label htmlFor="jasenx">Jasen x:</label>
-        <input type="text" name="nimi" id="jasenx" required="required" /> */}
       </fieldset>
     );
     /* jshint ignore:end */
@@ -380,6 +382,22 @@ class ListaaJoukkueet extends React.PureComponent {
     });
   }
 
+  etsiSarja(joukkue) {
+    for (const sarja of this.props.sarjat) {
+      if (sarja.id === joukkue.sarja) {
+        return sarja.nimi;
+      }
+    }
+  }
+
+  etsiLeimat(joukkue) {
+    let leimat = "";
+    for (const i of joukkue.leimaustapa) {
+      leimat = leimat + ", " + this.props.leimat[i];
+    }
+    return leimat.substring(2);
+  }
+
   render() {
     const joukkueet = this.props.joukkueet.slice();
     const jarjestaJoukkueet = joukkueet.sort((a, b) => {
@@ -397,23 +415,19 @@ class ListaaJoukkueet extends React.PureComponent {
     // }
 
     const joukkuelista = jarjestaJoukkueet.map((j) => {
+      const sarja = this.etsiSarja(j);
+      const leimat = this.etsiLeimat(j);
       return (
         <li key={j.id}>
           {j.nimi}
-          <ul>{this.joukkueenJasenet(j.id)}</ul>
+          <br />
+          {sarja} ({leimat})<ul>{this.joukkueenJasenet(j.id)}</ul>
         </li>
       );
     });
 
     /* jshint ignore:start */
-    return (
-      <ul id="joukkuelista">
-        {joukkuelista}
-        {/* {this.props.joukkueet.map((j) => {
-          return <li key={j.id}>{j.nimi}</li>;
-        })} */}
-      </ul>
-    );
+    return <ul className="joukkuelista">{joukkuelista}</ul>;
     /* jshint ignore:end */
   }
 }
