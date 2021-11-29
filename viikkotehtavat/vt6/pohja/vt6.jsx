@@ -69,13 +69,7 @@ class App extends React.PureComponent {
 
     this.state = { kilpailu: data, edit: null };
     console.log(this.state);
-    /**
-     * //KOPIOITU VT1:stä
-     * hakee annetun joukkueen merkitsevät rastit.
-     * TODO: viimeinen lahto ja eka maali, vt1/vt2
-     * @param {Object} joukkue
-     * @returns Array, johon on tallennettu koodit niistä joukkueen rasteista, jotka huomioidaan
-     */
+
     return;
   }
 
@@ -101,12 +95,26 @@ class App extends React.PureComponent {
     };
 
     if (this.state.edit) {
-      console.log("edit");
-
+      // jos on valittu joukkue, katsotaan statesta millä joukkueella sama id ja muokataan sitä
       this.setState({
+        kilpailu: {
+          ...this.state.kilpailu,
+          joukkueet: this.state.kilpailu.joukkueet.map((joukkue) => {
+            if (joukkue.id === this.state.edit.id) {
+              return {
+                ...newJoukkue,
+                id: this.state.edit.id,
+                rastit: this.state.edit.rastit,
+              };
+            }
+            return joukkue;
+          }),
+        },
+        // muokkauksen jälkeen asetetaan edit: null, eli mikään joukkue ei ole valittu
         edit: null,
       });
     } else {
+      // jos mitään joukkuetta ei ole valittu, luodaan kokonaan uusi joukkue
       this.setState({
         kilpailu: {
           ...this.state.kilpailu,
@@ -114,17 +122,6 @@ class App extends React.PureComponent {
         },
       });
     }
-    // testituloste, poistetaan lopuksi
-    console.log(
-      "Joukkueen nimi: " +
-        uusi.nimi +
-        "\nJoukkueen jäsenet: " +
-        uusi.jasenet +
-        "\nJoukkueen leimaustavat: " +
-        uusi.leimat +
-        "\nJoukkueen sarja: " +
-        uusi.sarja.nimi
-    );
   };
 
   setEdit = (joukkue) => {
@@ -170,23 +167,21 @@ class LisaaJoukkue extends React.PureComponent {
     this.leimaHandler = this.leimaHandler.bind(this);
     this.sarjaHandler = this.sarjaHandler.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.tyhjennaLomake = this.tyhjennaLomake.bind(this);
   }
 
   componentDidUpdate(prevProps, prevState) {
-    console.log("prevProps: ", prevProps);
-    console.log("prevState: ", prevState);
     if (this.props.edit && this.props.edit !== prevProps.edit) {
+      console.log(this.props.edit);
       // jos joukkuetta on klikattu (paitsi jos samaa uudestaan)
       const { edit } = { ...this.props }; // kopioidaan klikatun joukkueen tiedot
-      console.log("edit: ", edit);
       const jasenet = edit.jasenet;
 
       const valittuNimi = edit.nimi;
-      console.log("nimi: ", valittuNimi);
 
-      let valittuSarja = 0;
+      let valittuSarja = -1;
       for (let i = 0; i < this.props.sarjat.length; i++) {
-        if (this.props.sarjat[i] === edit.sarja) {
+        if (this.props.sarjat[i].id === edit.sarja) {
           valittuSarja = i;
         }
       }
@@ -206,6 +201,16 @@ class LisaaJoukkue extends React.PureComponent {
         sarja: valittuSarja,
       });
     }
+  }
+
+  tyhjennaLomake() {
+    this.setState({
+      ...this.state,
+      nimi: "",
+      jasenet: ["", ""],
+      leimat: Array(this.props.leimaustavat.length).fill(false),
+      sarja: 0,
+    });
   }
 
   nimiHandler(e) {
@@ -300,6 +305,7 @@ class LisaaJoukkue extends React.PureComponent {
       }
     } else {
       this.props.handleJoukkueenLisays(uusiJoukkue);
+      this.tyhjennaLomake();
     }
   }
 
