@@ -170,9 +170,8 @@ class LisaaJoukkue extends React.PureComponent {
     this.tyhjennaLomake = this.tyhjennaLomake.bind(this);
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps) {
     if (this.props.edit && this.props.edit !== prevProps.edit) {
-      console.log(this.props.edit);
       // jos joukkuetta on klikattu (paitsi jos samaa uudestaan)
       const { edit } = { ...this.props }; // kopioidaan klikatun joukkueen tiedot
       const jasenet = edit.jasenet;
@@ -196,7 +195,7 @@ class LisaaJoukkue extends React.PureComponent {
       this.setState({
         ...this.state,
         nimi: valittuNimi,
-        jasenet: [...jasenet],
+        jasenet: [...jasenet, ""],
         leimat: valitutLeimat,
         sarja: valittuSarja,
       });
@@ -223,7 +222,6 @@ class LisaaJoukkue extends React.PureComponent {
 
   jasenHandler(e, i) {
     e.target.setCustomValidity("");
-
     let jasenet = this.state.jasenet.slice();
     jasenet[i] = e.target.value;
 
@@ -239,7 +237,6 @@ class LisaaJoukkue extends React.PureComponent {
     if (tyhjienIndeksit.length === 0 && jasenet.length < 5) {
       jasenet.push("");
     } else if (tyhjienIndeksit.length > 1 && jasenet.length > 2) {
-      console.log("tyhjien indeksit: " + tyhjienIndeksit);
       jasenet.splice(tyhjienIndeksit[0], 1);
     }
 
@@ -267,7 +264,6 @@ class LisaaJoukkue extends React.PureComponent {
 
   handleSubmit(e) {
     e.preventDefault();
-
     // luodaan array jossa on listaus valituista leimoista.
     let arr = [];
     for (let i = 0; i < this.state.leimat.length; i++) {
@@ -313,7 +309,7 @@ class LisaaJoukkue extends React.PureComponent {
     /* jshint ignore:start */
     return (
       <form className="form" onSubmit={this.handleSubmit}>
-        <Joukkue
+        <JoukkueenTiedot
           nimi={this.state.nimi}
           leimaustavat={this.props.leimaustavat}
           sarjat={this.props.sarjat}
@@ -334,7 +330,7 @@ class LisaaJoukkue extends React.PureComponent {
   }
 }
 
-class Joukkue extends React.PureComponent {
+class JoukkueenTiedot extends React.PureComponent {
   constructor(props) {
     super(props);
   }
@@ -428,34 +424,21 @@ class ListaaJoukkueet extends React.PureComponent {
     super(props);
   }
 
-  joukkueenJasenet(id) {
-    let lista = [];
-    for (const joukkue of this.props.joukkueet) {
-      if (id === joukkue.id) {
-        lista = joukkue.jasenet;
-        break;
-      }
-    }
-    return lista.map((j) => {
-      return <li key={(id, j)}>{j}</li>;
-    });
-  }
-
-  etsiSarja(joukkue) {
+  etsiSarja = (joukkue) => {
     for (const sarja of this.props.sarjat) {
       if (sarja.id === joukkue.sarja) {
         return sarja.nimi;
       }
     }
-  }
+  };
 
-  etsiLeimat(joukkue) {
+  etsiLeimat = (joukkue) => {
     let leimat = "";
     for (const i of joukkue.leimaustapa) {
       leimat = leimat + ", " + this.props.leimat[i];
     }
     return leimat.substring(2);
-  }
+  };
 
   render() {
     const joukkueet = this.props.joukkueet.slice();
@@ -469,31 +452,71 @@ class ListaaJoukkueet extends React.PureComponent {
       return 0;
     });
 
-    // for (let i = 0; i < joukkuelista.length; i++) {
-    //   tulostaJoukkue(joukkuelista[i]);
-    // }
-
     const joukkuelista = jarjestaJoukkueet.map((j) => {
       const sarja = this.etsiSarja(j);
       const leimat = this.etsiLeimat(j);
+
       return (
-        <li key={j.id}>
-          <a
-            onClick={() => {
-              this.props.setEdit(j);
-            }}
-          >
-            {j.nimi}
-          </a>
-          <br />
-          {sarja} ({leimat})<ul>{this.joukkueenJasenet(j.id)}</ul>
-        </li>
+        <Joukkue
+          j={j}
+          key={j.id}
+          etsiLeimat={this.etsiLeimat}
+          etsiSarja={this.etsiSarja}
+          setEdit={this.props.setEdit}
+        />
       );
     });
 
     /* jshint ignore:start */
-    return <ul className="joukkuelista">{joukkuelista}</ul>;
+    return (
+      // <Joukkue />
+
+      <ul className="joukkuelista">{joukkuelista}</ul>
+    );
     /* jshint ignore:end */
+  }
+}
+
+class Joukkue extends React.PureComponent {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    const j = this.props.j;
+    const sarja = this.props.etsiSarja(j);
+    const leimat = this.props.etsiLeimat(j);
+    return (
+      <li>
+        <a
+          onClick={() => {
+            this.props.setEdit(j);
+          }}
+        >
+          {j.nimi}
+        </a>
+        <br />
+        {sarja} ({leimat})<Jasenlistaus joukkue={j} />
+      </li>
+    );
+  }
+}
+
+class Jasenlistaus extends React.PureComponent {
+  constructor(props) {
+    super(props);
+  }
+
+  joukkueenJasenet = () => {
+    let lista = [];
+    lista = this.props.joukkue.jasenet;
+
+    return lista.map((j) => {
+      return <li key={(this.props.joukkue.id, j)}>{j}</li>;
+    });
+  };
+  render() {
+    return <ul>{this.joukkueenJasenet()}</ul>;
   }
 }
 
