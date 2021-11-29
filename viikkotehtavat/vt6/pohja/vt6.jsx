@@ -144,6 +144,7 @@ class App extends React.PureComponent {
           sarjat={this.state.kilpailu.sarjat}
           leimat={this.state.kilpailu.leimaustavat}
           setEdit={this.setEdit}
+          kilpailu={this.state.kilpailu}
         />
       </div>
     );
@@ -308,7 +309,7 @@ class LisaaJoukkue extends React.PureComponent {
   render() {
     /* jshint ignore:start */
     return (
-      <form className="form" onSubmit={this.handleSubmit}>
+      <form className="form" id="form" onSubmit={this.handleSubmit}>
         <JoukkueenTiedot
           nimi={this.state.nimi}
           leimaustavat={this.props.leimaustavat}
@@ -463,6 +464,7 @@ class ListaaJoukkueet extends React.PureComponent {
           etsiLeimat={this.etsiLeimat}
           etsiSarja={this.etsiSarja}
           setEdit={this.props.setEdit}
+          kilpailu={this.props.kilpailu}
         />
       );
     });
@@ -486,15 +488,19 @@ class Joukkue extends React.PureComponent {
     const j = this.props.j;
     const sarja = this.props.etsiSarja(j);
     const leimat = this.props.etsiLeimat(j);
+    const pisteet = laskePisteet(j, this.props.kilpailu);
+    const kilsat = haeMatka(j, this.props.kilpailu).toFixed(1);
     return (
       <li>
         <a
+          href="#form"
           onClick={() => {
             this.props.setEdit(j);
           }}
         >
           {j.nimi}
-        </a>
+        </a>{" "}
+        ({pisteet} p, {kilsat} km)
         <br />
         {sarja} ({leimat})<Jasenlistaus joukkue={j} />
       </li>
@@ -526,3 +532,98 @@ ReactDOM.render(
   /* jshint ignore:end */
   document.getElementById("root")
 );
+
+// kopioitu aiemmasta VT:stä. Alunperin kopioitu allaolevalta sivulta 20.11.2021:
+// https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
+// laskee kahden pisteen koordinaattien perusteella niiden välisen etäisyyden kilometreinä
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2 - lat1); // deg2rad below
+  var dLon = deg2rad(lon2 - lon1);
+  var a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = R * c; // Distance in km
+  return d;
+}
+function deg2rad(deg) {
+  return deg * (Math.PI / 180);
+}
+
+// kopioitu aiemmasta VT:stä.
+// palauttaa arrayn, jossa yhden joukkueen kaikki rastit (objektina)
+function haeRastit(joukkue, data) {
+  let arr = [];
+  let kayty = {};
+  let alku = false;
+  let lahto;
+  let maali;
+  for (const d of data.rastit) {
+    if (d.koodi === "LAHTO") {
+      lahto = d;
+    }
+    if (d.koodi === "MAALI") {
+      maali = d;
+    }
+  }
+  for (const r of joukkue.rastit) {
+    //käydään läpi kaikki joukkueen rastit
+
+    if (typeof r === "object") {
+      //varmistetaan, että rasti on objekti eikä jotain outoa
+      if (r.rasti.id === lahto.id) {
+        arr = [lahto];
+        alku = true;
+      } else if (r.rasti.id === maali.id && alku) {
+        arr.push(maali);
+        return arr;
+      } else {
+        for (const d of data.rastit) {
+          if (r.rasti.id === d.id && kayty[r.rasti.id] === undefined && alku) {
+            //etsitään, onko tietokannassa rastia joka vastaa joukkueen merkitsemää
+            kayty[r.rasti.id] = true;
+            arr.push(d); //jos rasti vastaa tietokannan rastia, lisätään sen koodi listaan
+          }
+        }
+      }
+    }
+  }
+  return arr;
+}
+
+// kopioitu aiemmasta VT:stä.
+function haeMatka(joukkue, data) {
+  // laskee yhden joukkueen kulkeman matkan ja palauttaa sen kilometreinä
+  let arr = haeRastit(joukkue, data);
+  let dist = 0;
+  for (let i = 0; i < arr.length - 1; i++) {
+    let lat1 = arr[i].lat;
+    let lon1 = arr[i].lon;
+    let lat2 = arr[i + 1].lat;
+    let lon2 = arr[i + 1].lon;
+    dist = dist + getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2);
+  }
+  return dist;
+}
+
+/**
+ * KOPIOITU VT1:stä
+ * Kutsuu haeRastit-funktiota, ja laskee sen palauttaman setin jokaisen jäsenen
+ * ensimmäisen numeron yhteen. Jos ensimmäinen merkki ei ole numero, ei tee mitään tälle rastille.
+ * @param {Object} joukkue
+ * @returns summa-kokonaisluku
+ */
+function laskePisteet(joukkue, data) {
+  let arr = haeRastit(joukkue, data);
+  let summa = 0;
+  for (const r of arr) {
+    if (isFinite(r.koodi[0])) {
+      summa = summa + parseInt(r.koodi[0]);
+    }
+  }
+  return summa;
+}
