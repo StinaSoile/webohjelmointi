@@ -67,7 +67,7 @@ class App extends React.PureComponent {
     // Objekteja ja taulukoita ei voida kopioida pelkällä sijoitusoperaattorilla
     // kts. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from
 
-    this.state = { kilpailu: data };
+    this.state = { kilpailu: data, edit: null };
     console.log(this.state);
     /**
      * //KOPIOITU VT1:stä
@@ -100,13 +100,20 @@ class App extends React.PureComponent {
       id: id,
     };
 
-    this.setState({
-      kilpailu: {
-        ...this.state.kilpailu,
-        joukkueet: [...this.state.kilpailu.joukkueet, newJoukkue],
-      },
-    });
+    if (this.state.edit) {
+      console.log("edit");
 
+      this.setState({
+        edit: null,
+      });
+    } else {
+      this.setState({
+        kilpailu: {
+          ...this.state.kilpailu,
+          joukkueet: [...this.state.kilpailu.joukkueet, newJoukkue],
+        },
+      });
+    }
     // testituloste, poistetaan lopuksi
     console.log(
       "Joukkueen nimi: " +
@@ -120,20 +127,26 @@ class App extends React.PureComponent {
     );
   };
 
+  setEdit = (joukkue) => {
+    this.setState({ edit: joukkue });
+  };
+
   render() {
     // jshint ei ymmärrä jsx-syntaksia
     /* jshint ignore:start */
     return (
       <div className="grid">
         <LisaaJoukkue
-          leimat={this.state.kilpailu.leimaustavat}
+          leimaustavat={this.state.kilpailu.leimaustavat}
           sarjat={this.state.kilpailu.sarjat}
           handleJoukkueenLisays={this.handleJoukkueenLisays}
+          edit={this.state.edit}
         />
         <ListaaJoukkueet
           joukkueet={this.state.kilpailu.joukkueet}
           sarjat={this.state.kilpailu.sarjat}
           leimat={this.state.kilpailu.leimaustavat}
+          setEdit={this.setEdit}
         />
       </div>
     );
@@ -149,7 +162,7 @@ class LisaaJoukkue extends React.PureComponent {
       nimi: "",
       jasenet: ["", ""],
 
-      leimat: Array(this.props.leimat.length).fill(false),
+      leimat: Array(this.props.leimaustavat.length).fill(false),
       sarja: 0,
     };
     this.nimiHandler = this.nimiHandler.bind(this);
@@ -157,6 +170,42 @@ class LisaaJoukkue extends React.PureComponent {
     this.leimaHandler = this.leimaHandler.bind(this);
     this.sarjaHandler = this.sarjaHandler.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    console.log("prevProps: ", prevProps);
+    console.log("prevState: ", prevState);
+    if (this.props.edit && this.props.edit !== prevProps.edit) {
+      // jos joukkuetta on klikattu (paitsi jos samaa uudestaan)
+      const { edit } = { ...this.props }; // kopioidaan klikatun joukkueen tiedot
+      console.log("edit: ", edit);
+      const jasenet = edit.jasenet;
+
+      const valittuNimi = edit.nimi;
+      console.log("nimi: ", valittuNimi);
+
+      let valittuSarja = 0;
+      for (let i = 0; i < this.props.sarjat.length; i++) {
+        if (this.props.sarjat[i] === edit.sarja) {
+          valittuSarja = i;
+        }
+      }
+
+      let valitutLeimat = this.state.leimat.map((_, i) => {
+        if (edit.leimaustapa.includes(i)) {
+          return true;
+        }
+        return false;
+      });
+
+      this.setState({
+        ...this.state,
+        nimi: valittuNimi,
+        jasenet: [...jasenet],
+        leimat: valitutLeimat,
+        sarja: valittuSarja,
+      });
+    }
   }
 
   nimiHandler(e) {
@@ -259,8 +308,10 @@ class LisaaJoukkue extends React.PureComponent {
     return (
       <form className="form" onSubmit={this.handleSubmit}>
         <Joukkue
-          leimat={this.props.leimat}
+          nimi={this.state.nimi}
+          leimaustavat={this.props.leimaustavat}
           sarjat={this.props.sarjat}
+          leimat={this.state.leimat}
           sarja={this.state.sarja}
           nimiHandler={this.nimiHandler}
           leimaHandler={this.leimaHandler}
@@ -283,12 +334,13 @@ class Joukkue extends React.PureComponent {
   }
 
   render() {
-    const leimat = this.props.leimat.map((x, i) => (
+    const leimat = this.props.leimaustavat.map((x, i) => (
       <label key={i + "leima"}>
         {x}
         <input
           type="checkbox"
           name="leima"
+          checked={this.props.leimat[i] === true}
           onChange={(e) => this.props.leimaHandler(e, i)}
         />
       </label>
@@ -314,6 +366,7 @@ class Joukkue extends React.PureComponent {
           type="text"
           name="nimi"
           id="nimi"
+          value={this.props.nimi}
           required="required"
           onChange={(e) => this.props.nimiHandler(e)}
         />
@@ -419,7 +472,13 @@ class ListaaJoukkueet extends React.PureComponent {
       const leimat = this.etsiLeimat(j);
       return (
         <li key={j.id}>
-          {j.nimi}
+          <a
+            onClick={() => {
+              this.props.setEdit(j);
+            }}
+          >
+            {j.nimi}
+          </a>
           <br />
           {sarja} ({leimat})<ul>{this.joukkueenJasenet(j.id)}</ul>
         </li>
