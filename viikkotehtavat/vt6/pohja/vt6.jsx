@@ -146,6 +146,7 @@ class App extends React.PureComponent {
           setEdit={this.setEdit}
           kilpailu={this.state.kilpailu}
         />
+        <ListaaRastit rastit={this.state.kilpailu.rastit} />
       </div>
     );
     /* jshint ignore:end */
@@ -309,23 +310,26 @@ class LisaaJoukkue extends React.PureComponent {
   render() {
     /* jshint ignore:start */
     return (
-      <form className="form" id="form" onSubmit={this.handleSubmit}>
-        <JoukkueenTiedot
-          nimi={this.state.nimi}
-          leimaustavat={this.props.leimaustavat}
-          sarjat={this.props.sarjat}
-          leimat={this.state.leimat}
-          sarja={this.state.sarja}
-          nimiHandler={this.nimiHandler}
-          leimaHandler={this.leimaHandler}
-          sarjaHandler={this.sarjaHandler}
-        />
-        <Jasenet
-          jasenet={this.state.jasenet}
-          jasenHandler={this.jasenHandler}
-        />
-        <button type="submit">Tallenna</button>
-      </form>
+      <div className="formDiv">
+        <h2>Lisää joukkue</h2>
+        <form className="form" id="form" onSubmit={this.handleSubmit}>
+          <JoukkueenTiedot
+            nimi={this.state.nimi}
+            leimaustavat={this.props.leimaustavat}
+            sarjat={this.props.sarjat}
+            leimat={this.state.leimat}
+            sarja={this.state.sarja}
+            nimiHandler={this.nimiHandler}
+            leimaHandler={this.leimaHandler}
+            sarjaHandler={this.sarjaHandler}
+          />
+          <Jasenet
+            jasenet={this.state.jasenet}
+            jasenHandler={this.jasenHandler}
+          />
+          <button type="submit">Tallenna</button>
+        </form>
+      </div>
     );
     /* jshint ignore:end */
   }
@@ -471,9 +475,10 @@ class ListaaJoukkueet extends React.PureComponent {
 
     /* jshint ignore:start */
     return (
-      // <Joukkue />
-
-      <ul className="joukkuelista">{joukkuelista}</ul>
+      <div className="joukkuelista">
+        <h2>Joukkueet</h2>
+        <ul>{joukkuelista}</ul>
+      </div>
     );
     /* jshint ignore:end */
   }
@@ -523,6 +528,39 @@ class Jasenlistaus extends React.PureComponent {
   };
   render() {
     return <ul>{this.joukkueenJasenet()}</ul>;
+  }
+}
+
+class ListaaRastit extends React.PureComponent {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    const rastit = this.props.rastit.slice().sort((a, b) => {
+      if (a.koodi.trim().toLowerCase() < b.koodi.trim().toLowerCase()) {
+        return -1;
+      }
+      if (a.koodi.trim().toLowerCase() > b.koodi.trim().toLowerCase()) {
+        return 1;
+      }
+      return 0;
+    });
+
+    const rastilista = rastit.map((r) => {
+      return (
+        <li key={r.id}>
+          <a>{r.koodi}</a>
+        </li>
+      );
+    });
+
+    return (
+      <div className="kaikkiRastit">
+        <h2>Rastit</h2>
+        <ul>{rastilista}</ul>
+      </div>
+    );
   }
 }
 
