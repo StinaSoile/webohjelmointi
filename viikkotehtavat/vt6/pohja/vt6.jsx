@@ -128,6 +128,24 @@ class App extends React.PureComponent {
     this.setState({ edit: joukkue });
   };
 
+  muutaRasti = (vanhaR, uusiKoodi) => {
+    this.setState({
+      kilpailu: {
+        ...this.state.kilpailu,
+        rastit: this.state.kilpailu.rastit.map((r) => {
+          if (r.id === vanhaR.id) {
+            const uusiR = {
+              ...r,
+              koodi: uusiKoodi,
+            };
+            return uusiR;
+          }
+          return r;
+        }),
+      },
+    });
+  };
+
   render() {
     // jshint ei ymmärrä jsx-syntaksia
     /* jshint ignore:start */
@@ -146,7 +164,10 @@ class App extends React.PureComponent {
           setEdit={this.setEdit}
           kilpailu={this.state.kilpailu}
         />
-        <ListaaRastit rastit={this.state.kilpailu.rastit} />
+        <ListaaRastit
+          muutaRasti={this.muutaRasti}
+          rastit={this.state.kilpailu.rastit}
+        />
       </div>
     );
     /* jshint ignore:end */
@@ -534,6 +555,29 @@ class Jasenlistaus extends React.PureComponent {
 class ListaaRastit extends React.PureComponent {
   constructor(props) {
     super(props);
+    this.state = {
+      inputIndex: null,
+    };
+  }
+
+  rastiClick(i) {
+    this.setState({ inputIndex: i });
+    console.log("rasticlick, " + i);
+  }
+
+  rastiBlur(e, r) {
+    e.preventDefault();
+    const el = e.target;
+    const value = el.value.trim();
+    if (value !== "" && isFinite(value[0])) {
+      console.log("dagg" + r.koodi);
+      this.props.muutaRasti(r, value);
+      this.setState({ inputIndex: null });
+    } else {
+      el.setCustomValidity("Rastin täytyy alkaa numerolla");
+      el.reportValidity();
+    }
+    console.log("rastiblur");
   }
 
   render() {
@@ -547,10 +591,22 @@ class ListaaRastit extends React.PureComponent {
       return 0;
     });
 
-    const rastilista = rastit.map((r) => {
+    const rastilista = rastit.map((r, i) => {
       return (
-        <li key={r.id}>
-          <a>{r.koodi}</a>
+        <li key={r.id} className="rasti">
+          {i !== this.state.inputIndex && (
+            <a onClick={(e) => this.rastiClick(i)}>{r.koodi}</a>
+          )}
+          {i === this.state.inputIndex && (
+            <input
+              onBlur={(e) => this.rastiBlur(e, r, i)}
+              type="text"
+              defaultValue={r.koodi}
+              autoFocus
+            />
+          )}
+          <br />
+          {r.lon}, {r.lat}
         </li>
       );
     });
