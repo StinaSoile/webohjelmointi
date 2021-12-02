@@ -67,12 +67,16 @@ class App extends React.PureComponent {
     // Objekteja ja taulukoita ei voida kopioida pelkällä sijoitusoperaattorilla
     // kts. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from
 
+    // edit on arvo joka kertoo, onko klikattu jtk joukkuetta eli muokataanko joukkuetta. Jos null, luodaan uutta joukkuetta
+    // mapIndex on arvo joka kertoo mitä rastilistan koordinaateista klikattiin, ts mihin kartta piirtyy. Jos null, ei piirretä karttaa
     this.state = { kilpailu: data, edit: null, mapIndex: null };
     console.log(this.state);
 
     return;
   }
 
+  // maxId on sitä varten että uudelle luodulle joukkueelle saadaan uusi id
+  // käytetään handleJoukkueenLisays-funktiossa
   getMaxId = (arr) => {
     let maxId = 0;
     for (const j of arr) {
@@ -83,6 +87,7 @@ class App extends React.PureComponent {
     return maxId;
   };
 
+  // muokataan joukkuetta tai luodaan uusi
   handleJoukkueenLisays = (uusi) => {
     const id = this.getMaxId(this.state.kilpailu.joukkueet) + 1;
     const newJoukkue = {
@@ -94,8 +99,8 @@ class App extends React.PureComponent {
       id: id,
     };
 
+    // jos on valittu joukkue, katsotaan statesta millä joukkueella sama id ja muokataan sitä
     if (this.state.edit) {
-      // jos on valittu joukkue, katsotaan statesta millä joukkueella sama id ja muokataan sitä
       this.setState({
         kilpailu: {
           ...this.state.kilpailu,
@@ -124,10 +129,12 @@ class App extends React.PureComponent {
     }
   };
 
+  // asetetaan editin arvoksi jokin joukkue. Kutsutaan kun klikataan joukkuetta
   setEdit = (joukkue) => {
     this.setState({ edit: joukkue });
   };
 
+  // kun muokataan rastilistan rastia, kutsutaan tätä.
   muutaRasti = (vanhaR, uusiKoodi) => {
     this.setState({
       kilpailu: {
@@ -146,12 +153,37 @@ class App extends React.PureComponent {
     });
   };
 
+  // jos klikataan sivulla mistä vaan niin mapIndeksi menee nulliksi
+  // tämän tarkoitus on että
+  // kun rastin koordinaatteja klikkaamalla on luotu kartta,
+  // mistä tahansa muualta klikkaamalla kartta katoaa
+  // karttaa klikatessa ei katoa, koska siellä on stopPropagation.
   klikattuAppia = () => {
     this.setState({ mapIndex: null });
   };
 
+  // kun klikataan rastin koordinaatteja, kutsutaan tätä ListaaRastit-classissa
+  // mapIndex on klikatun rastin indeksi, ja sen perusteella kartta luodaan oikeaan paikkaan
   handleMapIndex = (i) => {
     this.setState({ mapIndex: i });
+  };
+
+  // kutsutaan mapboksissa kun asetetaan rastille uudet koordinaatit markeria siirtämällä
+  koordHandler = (lat, lon, rasti) => {
+    this.setState({
+      kilpailu: {
+        ...this.state.kilpailu,
+        rastit: this.state.kilpailu.rastit.map((r) =>
+          r.id === rasti.id
+            ? {
+                ...r,
+                lon: lon.toFixed(6).toString(),
+                lat: lat.toFixed(6).toString(),
+              }
+            : r
+        ),
+      },
+    });
   };
 
   render() {
@@ -173,6 +205,7 @@ class App extends React.PureComponent {
           kilpailu={this.state.kilpailu}
         />
         <ListaaRastit
+          koordHandler={this.koordHandler}
           mapIndex={this.state.mapIndex}
           handleMapIndex={this.handleMapIndex}
           muutaRasti={this.muutaRasti}
@@ -184,6 +217,7 @@ class App extends React.PureComponent {
   }
 }
 
+// lomake
 class LisaaJoukkue extends React.PureComponent {
   constructor(props) {
     super(props);
@@ -203,6 +237,10 @@ class LisaaJoukkue extends React.PureComponent {
     this.tyhjennaLomake = this.tyhjennaLomake.bind(this);
   }
 
+  // kun joukkuetta klikataan, edit asetetaan klikatuksi joukkueeksi.
+  // tämän jälkeen kutsutaan tätä ftiota.
+  // componentDidUpdate kutsutaan heti kun havaitaan updeittaus:
+  // https://reactjs.org/docs/react-component.html#componentdidmount
   componentDidUpdate(prevProps) {
     if (this.props.edit && this.props.edit !== prevProps.edit) {
       // jos joukkuetta on klikattu (paitsi jos samaa uudestaan)
@@ -225,6 +263,7 @@ class LisaaJoukkue extends React.PureComponent {
         return false;
       });
 
+      // asetetaan tämän stateen klikatun joukkueen tiedot
       this.setState({
         ...this.state,
         nimi: valittuNimi,
@@ -235,6 +274,8 @@ class LisaaJoukkue extends React.PureComponent {
     }
   }
 
+  // kutsutaan handlesubmitissa tässä classissa.
+  // tyhjennetään lomake sen jälkeen kun ollaan onnistuneesti tehty submit
   tyhjennaLomake() {
     this.setState({
       ...this.state,
@@ -245,6 +286,7 @@ class LisaaJoukkue extends React.PureComponent {
     });
   }
 
+  // joukkueen nimen käsittelijä lomakkeessa
   nimiHandler(e) {
     e.target.setCustomValidity("");
     this.setState({ nimi: e.target.value });
@@ -253,6 +295,7 @@ class LisaaJoukkue extends React.PureComponent {
     }
   }
 
+  // joukkueen jäsenten käsittelijä lomakkeessa
   jasenHandler(e, i) {
     e.target.setCustomValidity("");
     let jasenet = this.state.jasenet.slice();
@@ -276,6 +319,7 @@ class LisaaJoukkue extends React.PureComponent {
     this.setState({ jasenet });
   }
 
+  // lomakkeen leimausten käsittelijä
   leimaHandler(e, i) {
     e.target.setCustomValidity("");
 
@@ -289,12 +333,14 @@ class LisaaJoukkue extends React.PureComponent {
     }
   }
 
+  // lomakkeen sarjan käsittelijä
   sarjaHandler(e, i) {
     e.target.setCustomValidity("");
 
     this.setState({ sarja: i });
   }
 
+  // submit-käsittelijä
   handleSubmit(e) {
     e.preventDefault();
     // luodaan array jossa on listaus valituista leimoista.
@@ -314,7 +360,8 @@ class LisaaJoukkue extends React.PureComponent {
     };
 
     // tehdään validoinnit leimoille ja jäsenille.
-    //(joukkueen nimelle tehdään jo nimiHandlerissa)
+    // joukkueen nimelle tehdään jo nimiHandlerissa,
+    // mutta näille on helpompi toteuttaa vasta tässä
 
     //jos leimaustapoja ei ole valittuna, valitetaan
     if (uusiJoukkue.leimat.length === 0) {
@@ -366,12 +413,14 @@ class LisaaJoukkue extends React.PureComponent {
   }
 }
 
+// lomakkeen Joukkueen tiedot -fieldset
 class JoukkueenTiedot extends React.PureComponent {
   constructor(props) {
     super(props);
   }
 
   render() {
+    // luodaan lomakkeeseen vaihtoehdot leimoille datan pohjalta
     const leimat = this.props.leimaustavat.map((x, i) => (
       <label key={i + "leima"}>
         {x}
@@ -384,6 +433,7 @@ class JoukkueenTiedot extends React.PureComponent {
       </label>
     ));
 
+    // luodaan lomakkeeseen sarjat datan pohjalta
     const sarjat = this.props.sarjat.map((x, i) => (
       <label key={i + "sarja"}>
         {x.nimi}
@@ -423,6 +473,7 @@ class JoukkueenTiedot extends React.PureComponent {
   }
 }
 
+// lomakkeen Jäsenet -fieldset
 class Jasenet extends React.PureComponent {
   constructor(props) {
     super(props);
@@ -431,6 +482,8 @@ class Jasenet extends React.PureComponent {
   render() {
     /* jshint ignore:start */
 
+    // luodaan jäsenet LisaaJoukkue-classin staten pohjalta. Siellä oletuksena kaksi tyhjää jäsentä,
+    // joten syntyy kaksi tyhjää inputtia.
     const jasenet = this.props.jasenet.map((j, i) => {
       return (
         <div className="jasen" key={i}>
@@ -455,11 +508,14 @@ class Jasenet extends React.PureComponent {
   }
 }
 
+// lista kaikista kilpailun joukkueista
 class ListaaJoukkueet extends React.PureComponent {
   constructor(props) {
     super(props);
   }
 
+  // etsitään annetun joukkueen sarja kilpailun datasta
+  // kutsutaan Joukkue-classissa kun luodaan yksittäistä joukkuetta listaan
   etsiSarja = (joukkue) => {
     for (const sarja of this.props.sarjat) {
       if (sarja.id === joukkue.sarja) {
@@ -468,6 +524,8 @@ class ListaaJoukkueet extends React.PureComponent {
     }
   };
 
+  // etsitään annetun joukkueen leimat kilpailun datasta
+  // kutsutaan Joukkue-classissa kun luodaan yksittäistä joukkuetta listaan
   etsiLeimat = (joukkue) => {
     let leimat = "";
     for (const i of joukkue.leimaustapa) {
@@ -477,7 +535,9 @@ class ListaaJoukkueet extends React.PureComponent {
   };
 
   render() {
+    // ensin koipiodaan joukkueet datasta
     const joukkueet = this.props.joukkueet.slice();
+    // ja sitten laitetaan aakkosjärjestykseen
     const jarjestaJoukkueet = joukkueet.sort((a, b) => {
       if (a.nimi.trim().toLowerCase() < b.nimi.trim().toLowerCase()) {
         return -1;
@@ -487,11 +547,8 @@ class ListaaJoukkueet extends React.PureComponent {
       }
       return 0;
     });
-
+    // Aakkosjärjestyksessä olevista joukkueista tehdään <li>-elementtejä Joukkue-classissa
     const joukkuelista = jarjestaJoukkueet.map((j) => {
-      const sarja = this.etsiSarja(j);
-      const leimat = this.etsiLeimat(j);
-
       return (
         <Joukkue
           j={j}
@@ -515,12 +572,17 @@ class ListaaJoukkueet extends React.PureComponent {
   }
 }
 
+// yksittäinen joukkue listassa
 class Joukkue extends React.PureComponent {
   constructor(props) {
     super(props);
   }
 
   render() {
+    // kerätään joukkueen tiedot propseista.
+    // etsiSarja ja etsiLeimat on ListaaJoukkueet-classin funktioita,
+    // laskePisteet ja haeMatka löytyy koodin lopusta,
+    // ovat normaaleja aiemmista viikkotehtävistä kopioituja funktioita
     const j = this.props.j;
     const sarja = this.props.etsiSarja(j);
     const leimat = this.props.etsiLeimat(j);
@@ -544,11 +606,14 @@ class Joukkue extends React.PureComponent {
   }
 }
 
+// jäsenet yhdessä listan joukkueessa
 class Jasenlistaus extends React.PureComponent {
   constructor(props) {
     super(props);
   }
 
+  // etsitään ja tehdään listaelementtejä yksittäisen joukkueen jäsenistä.
+  // Käytetään joukkue-classissa kun luodaan joukkuelistaan yksittäistä joukkuetta.
   joukkueenJasenet = () => {
     let lista = [];
     lista = this.props.joukkue.jasenet;
@@ -562,19 +627,26 @@ class Jasenlistaus extends React.PureComponent {
   }
 }
 
+// lista kaikista kilpailun rasteista
 class ListaaRastit extends React.PureComponent {
   constructor(props) {
     super(props);
+    // inputIndex kertoo mitä rastin oodia on klikattu.
+    // käytetään kun tehdään koodista muokattava: inputIndex määrittelee, mikä rasti on muokattavassa tilassa
     this.state = {
       inputIndex: null,
     };
   }
 
+  // kun yhtä rastin koodia klikataan, inputIndex saa arvokseen kys. rastin indeksin listassa
   rastiClick = (i) => {
     this.setState({ inputIndex: i });
-    console.log("rasticlick, " + i);
   };
 
+  // kun klikataan jostain muualta kuin valitusta rastista, validoidaan muokattu rastin koodi.
+  // jos koodi alkaa numerolla, inputIndex muuttuu nulliksi eli mikään rasti ei ole muokkaustilassa.
+  // lisäksi rastin muokattu koodi tallentuu
+  // jos rastin koodi ei ala numerolla, rasti pysyy muokkaustilassa ja valitetaan
   rastiBlur = (e, r) => {
     e.preventDefault();
     const el = e.target;
@@ -584,13 +656,14 @@ class ListaaRastit extends React.PureComponent {
       this.props.muutaRasti(r, value);
       this.setState({ inputIndex: null });
     } else {
-      el.setCustomValidity("Rastin täytyy alkaa numerolla");
+      el.setCustomValidity("Pitää alkaa numerolla");
       el.reportValidity();
       console.log("validity");
     }
   };
 
   render() {
+    // rastit aakkos-/suuruusjärjestykseen, samalla slice tekee siis kopiot datan rasteista
     const rastit = this.props.rastit.slice().sort((a, b) => {
       if (a.koodi.trim().toLowerCase() < b.koodi.trim().toLowerCase()) {
         return -1;
@@ -601,19 +674,26 @@ class ListaaRastit extends React.PureComponent {
       return 0;
     });
 
+    // tehdään rasteista listan elementtejä
     const rastilista = rastit.map((r, i) => {
       return (
         <li key={r.id} className="rasti">
           {i !== this.state.inputIndex && (
+            // klikatessa rastiClick muuttaa staten inputIndeksin arvoa
             <a onClick={(e) => this.rastiClick(i)}>{r.koodi}</a>
           )}
           {i === this.state.inputIndex && (
+            // jos inputIndeksissä on tämän rastin id, rastin koodi muutetaan input-kentäksi,
+            // jolla on rastiBlur -eventlisteneri, ei onClickiä
             <input
               onBlur={(e) => this.rastiBlur(e, r)}
               type="text"
               defaultValue={r.koodi}
               autoFocus
             />
+            // alla on br ja span. Kokeilin diviä mutta sen kanssa voi klikata koko riviltä,
+            // jossa koordinaatit on, ja halusin kartan näkyviin vain täsmälleen koordinaateista klikatessa.
+            // siksi tässä br ja span, niillä koordinaatti-elementit ei ollut koko rivin pituinen
           )}
           <br />
           <span
@@ -625,7 +705,13 @@ class ListaaRastit extends React.PureComponent {
           >
             {r.lat}, {r.lon}{" "}
             {i === this.props.mapIndex && (
-              <Mapbox rasti={r} lat={r.lat} lon={r.lon} />
+              // mapbox on kartta, joka piirtyy klikatun koordinaatin viereen.
+              <Mapbox
+                rasti={r}
+                lat={r.lat}
+                lon={r.lon}
+                koordHandler={this.props.koordHandler}
+              />
             )}
           </span>
         </li>
@@ -641,11 +727,15 @@ class ListaaRastit extends React.PureComponent {
   }
 }
 
+// rastilistassa esiintyvä kartta (kun klikataan rastin koordinaatteja)
 class Mapbox extends React.PureComponent {
+  // componentDidMount kutsutaan kun komponentti kiinnitetään DOM-puuhun
   componentDidMount() {
     this.map();
   }
 
+  // kutsutaan componentDidMountissa yllä
+  // piirtää kartan ja sinne siirreltävän rastin
   map() {
     //luodaan maastokartan pohja
     let mymap = new L.map("map", {
@@ -658,13 +748,20 @@ class Mapbox extends React.PureComponent {
       })
       .addTo(mymap);
 
-    let circle = L.circle([this.props.lat, this.props.lon], {
+    // ympyrä rastin sijainnin kohdalle, sijainti propseissa
+    let marker = L.marker([this.props.lat, this.props.lon], {
       color: "red",
       fillColor: "#f03",
       fillOpacity: 0.5,
       radius: 100,
       draggable: "true",
     }).addTo(mymap);
+
+    // kun markeria on raahattu, kutsutaan app-classin koordHandleria, joka asettaa rastille uudet koordinaatit
+    marker.on("dragend", (e) => {
+      const { lng, lat } = e.target._latlng;
+      this.props.koordHandler(lat, lng, this.props.rasti);
+    });
   }
 
   render() {
@@ -674,9 +771,7 @@ class Mapbox extends React.PureComponent {
         onClick={(e) => {
           e.stopPropagation();
         }}
-      >
-        KARTTA
-      </div>
+      ></div>
     );
   }
 }
@@ -705,6 +800,7 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   var d = R * c; // Distance in km
   return d;
 }
+// yllä käytettävä apufunktio
 function deg2rad(deg) {
   return deg * (Math.PI / 180);
 }
