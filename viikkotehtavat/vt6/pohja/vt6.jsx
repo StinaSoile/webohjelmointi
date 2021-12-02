@@ -67,7 +67,7 @@ class App extends React.PureComponent {
     // Objekteja ja taulukoita ei voida kopioida pelkällä sijoitusoperaattorilla
     // kts. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from
 
-    this.state = { kilpailu: data, edit: null };
+    this.state = { kilpailu: data, edit: null, mapIndex: null };
     console.log(this.state);
 
     return;
@@ -146,11 +146,19 @@ class App extends React.PureComponent {
     });
   };
 
+  klikattuAppia = () => {
+    this.setState({ mapIndex: null });
+  };
+
+  handleMapIndex = (i) => {
+    this.setState({ mapIndex: i });
+  };
+
   render() {
     // jshint ei ymmärrä jsx-syntaksia
     /* jshint ignore:start */
     return (
-      <div className="grid">
+      <div className="grid" onMouseDown={this.klikattuAppia}>
         <LisaaJoukkue
           leimaustavat={this.state.kilpailu.leimaustavat}
           sarjat={this.state.kilpailu.sarjat}
@@ -165,6 +173,8 @@ class App extends React.PureComponent {
           kilpailu={this.state.kilpailu}
         />
         <ListaaRastit
+          mapIndex={this.state.mapIndex}
+          handleMapIndex={this.handleMapIndex}
           muutaRasti={this.muutaRasti}
           rastit={this.state.kilpailu.rastit}
         />
@@ -560,25 +570,25 @@ class ListaaRastit extends React.PureComponent {
     };
   }
 
-  rastiClick(i) {
+  rastiClick = (i) => {
     this.setState({ inputIndex: i });
     console.log("rasticlick, " + i);
-  }
+  };
 
-  rastiBlur(e, r) {
+  rastiBlur = (e, r) => {
     e.preventDefault();
     const el = e.target;
+    el.setCustomValidity("");
     const value = el.value.trim();
     if (value !== "" && isFinite(value[0])) {
-      console.log("dagg" + r.koodi);
       this.props.muutaRasti(r, value);
       this.setState({ inputIndex: null });
     } else {
       el.setCustomValidity("Rastin täytyy alkaa numerolla");
       el.reportValidity();
+      console.log("validity");
     }
-    console.log("rastiblur");
-  }
+  };
 
   render() {
     const rastit = this.props.rastit.slice().sort((a, b) => {
@@ -599,14 +609,21 @@ class ListaaRastit extends React.PureComponent {
           )}
           {i === this.state.inputIndex && (
             <input
-              onBlur={(e) => this.rastiBlur(e, r, i)}
+              onBlur={(e) => this.rastiBlur(e, r)}
               type="text"
               defaultValue={r.koodi}
               autoFocus
             />
           )}
-          <br />
-          {r.lon}, {r.lat}
+          <div
+            className="koord"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              this.props.handleMapIndex(i);
+            }}
+          >
+            {r.lat}, {r.lon} {i === this.props.mapIndex && <Mapbox />}
+          </div>
         </li>
       );
     });
@@ -615,6 +632,25 @@ class ListaaRastit extends React.PureComponent {
       <div className="kaikkiRastit">
         <h2>Rastit</h2>
         <ul>{rastilista}</ul>
+      </div>
+    );
+  }
+}
+
+class Mapbox extends React.PureComponent {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return (
+      <div
+        id="map"
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+      >
+        KARTTA
       </div>
     );
   }
