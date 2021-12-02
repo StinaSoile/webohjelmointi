@@ -2,15 +2,6 @@
   padding: 0;
   margin: 0;
 }
-/* h1 {
-  margin: 0.5em;
-} */
-
-/* #container {
-  display: flexbox;
-  flex-direction: column;
-  margin: 1em;
-} */
 
 .grid {
   display: grid;
@@ -20,7 +11,6 @@
 .jasen {
   display: grid;
   grid-template-columns: 50% 50%;
-  /* grid-template-rows: 12px 12px 12px; */
 }
 
 #joukkue {
@@ -37,15 +27,10 @@
   margin-top: 2%;
   padding: 3%;
 }
-/* 
-.form label {
-  display: block;
-} */
 
 .form label,
 .form input[type="text"],
 .form p {
-  /* margin-top: 1%; */
   margin-bottom: 2em;
 }
 .form input[type="radio"],
@@ -101,12 +86,15 @@ button {
   margin-left: 3em;
 }
 
-/* Näitä ei mielestäni käytetä missään, tarkista vielä: */
+#map {
+  position: absolute;
+  height: 25rem;
+  width: 25rem;
+  left: 14rem;
+  /* width: 100%; */
+}
 
 #joukkueet {
-  /* display: flex;
-  flex-direction: column;
-  align-items: center; */
   margin-left: 4em;
   margin-top: 2em;
 }

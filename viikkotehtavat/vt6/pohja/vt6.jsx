@@ -615,15 +615,19 @@ class ListaaRastit extends React.PureComponent {
               autoFocus
             />
           )}
-          <div
+          <br />
+          <span
             className="koord"
             onMouseDown={(e) => {
               e.stopPropagation();
               this.props.handleMapIndex(i);
             }}
           >
-            {r.lat}, {r.lon} {i === this.props.mapIndex && <Mapbox />}
-          </div>
+            {r.lat}, {r.lon}{" "}
+            {i === this.props.mapIndex && (
+              <Mapbox rasti={r} lat={r.lat} lon={r.lon} />
+            )}
+          </span>
         </li>
       );
     });
@@ -638,8 +642,29 @@ class ListaaRastit extends React.PureComponent {
 }
 
 class Mapbox extends React.PureComponent {
-  constructor(props) {
-    super(props);
+  componentDidMount() {
+    this.map();
+  }
+
+  map() {
+    //luodaan maastokartan pohja
+    let mymap = new L.map("map", {
+      crs: L.TileLayer.MML.get3067Proj(),
+    }).setView([this.props.lat, this.props.lon], 9);
+    L.tileLayer
+      .mml_wmts({
+        layer: "maastokartta",
+        key: "c9d83f93-222a-4009-bd29-475127d32e9c",
+      })
+      .addTo(mymap);
+
+    let circle = L.circle([this.props.lat, this.props.lon], {
+      color: "red",
+      fillColor: "#f03",
+      fillOpacity: 0.5,
+      radius: 100,
+      draggable: "true",
+    }).addTo(mymap);
   }
 
   render() {
